@@ -83,28 +83,29 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     if (ready) writeJson(WISH_KEY, wishlist);
   }, [wishlist, ready]);
 
-  const addToCart = useCallback<StoreState["addToCart"]>((line, quantity, opts) => {
-    const existing = lines.find((l) => l.variantId === line.variantId);
-    const current = existing?.quantity ?? 0;
-    const next = Math.min(line.maxQuantity, current + quantity);
-    if (next === current) {
-      toast.warning(`You already have all ${line.maxQuantity} available in your bag.`);
-      return;
-    }
-    setLines(
-      existing
-        ? lines.map((l) => (l.variantId === line.variantId ? { ...l, ...line, quantity: next } : l))
-        : [...lines, { ...line, quantity: next }],
-    );
-    if (next < current + quantity) toast.warning(`Only ${line.maxQuantity} available — we've added the maximum.`);
-    else toast.success(`Added to your bag`, { description: `${line.name} · ${line.colour} · ${line.size}` });
-    if (opts?.openDrawer !== false) setCartOpen(true);
-  }, [lines]);
+  const addToCart = useCallback<StoreState["addToCart"]>(
+    (line, quantity, opts) => {
+      const existing = lines.find((l) => l.variantId === line.variantId);
+      const current = existing?.quantity ?? 0;
+      const next = Math.min(line.maxQuantity, current + quantity);
+      if (next === current) {
+        toast.warning(`You already have all ${line.maxQuantity} available in your bag.`);
+        return;
+      }
+      setLines(
+        existing
+          ? lines.map((l) => (l.variantId === line.variantId ? { ...l, ...line, quantity: next } : l))
+          : [...lines, { ...line, quantity: next }],
+      );
+      if (next < current + quantity) toast.warning(`Only ${line.maxQuantity} available — we've added the maximum.`);
+      else toast.success(`Added to your bag`, { description: `${line.name} · ${line.colour} · ${line.size}` });
+      if (opts?.openDrawer !== false) setCartOpen(true);
+    },
+    [lines],
+  );
 
   const updateQuantity = useCallback((variantId: string, quantity: number) => {
-    setLines((prev) =>
-      prev.map((l) => (l.variantId === variantId ? { ...l, quantity: Math.max(1, Math.min(l.maxQuantity, quantity)) } : l)),
-    );
+    setLines((prev) => prev.map((l) => (l.variantId === variantId ? { ...l, quantity: Math.max(1, Math.min(l.maxQuantity, quantity)) } : l)));
   }, []);
 
   const removeLine = useCallback((variantId: string) => {

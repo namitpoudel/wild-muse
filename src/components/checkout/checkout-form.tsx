@@ -70,7 +70,14 @@ export function CheckoutForm() {
     <form onSubmit={onSubmit} noValidate className="grid gap-10 lg:grid-cols-12">
       <div className="space-y-10 lg:col-span-7">
         <Step n={1} title="Contact">
-          <TextField label="Email" name="email" type="email" autoComplete="email" error={errors.email} hint="For your order confirmation and delivery updates." />
+          <TextField
+            label="Email"
+            name="email"
+            type="email"
+            autoComplete="email"
+            error={errors.email}
+            hint="For your order confirmation and delivery updates."
+          />
           <p className="text-sm text-bark">
             Have an account?{" "}
             <Link href="/login?next=/checkout" className="font-semibold text-terracotta underline underline-offset-4">
@@ -121,7 +128,14 @@ export function CheckoutForm() {
                   method === m.id ? "border-chocolate bg-cream" : "border-sand-deep hover:border-bark",
                 )}
               >
-                <input type="radio" name="method" value={m.id} checked={method === m.id} onChange={() => setMethod(m.id)} className="size-4 accent-terracotta" />
+                <input
+                  type="radio"
+                  name="method"
+                  value={m.id}
+                  checked={method === m.id}
+                  onChange={() => setMethod(m.id)}
+                  className="size-4 accent-terracotta"
+                />
                 <span className="flex-1">
                   <span className="block text-sm font-semibold">{m.label}</span>
                   <span className="block text-xs text-bark">{m.eta}</span>
@@ -137,14 +151,18 @@ export function CheckoutForm() {
           {!billingSame && (
             <div className="space-y-4 rounded-[2px] border border-sand p-4">
               <TextField label="Billing address line 1" name="billingLine1" autoComplete="billing address-line1" error={errors.billingLine1} />
-              <TextField label="Billing postcode" name="billingPostcode" autoComplete="billing postal-code" error={errors.billingPostcode} className="sm:max-w-48" />
+              <TextField
+                label="Billing postcode"
+                name="billingPostcode"
+                autoComplete="billing postal-code"
+                error={errors.billingPostcode}
+                className="sm:max-w-48"
+              />
             </div>
           )}
           <div className="flex items-start gap-3 rounded-[2px] bg-cream p-4 text-sm">
             <Lock className="mt-0.5 size-4 shrink-0 text-olive" aria-hidden />
-            <p>
-              You&apos;ll pay on Stripe&apos;s secure page — card, Apple Pay or Google Pay. Wild Muse never sees or stores your card details.
-            </p>
+            <p>You&apos;ll pay on Stripe&apos;s secure page — card, Apple Pay or Google Pay. Wild Muse never sees or stores your card details.</p>
           </div>
           <p className="text-xs text-bark">
             By placing your order you agree to our{" "}
@@ -172,7 +190,9 @@ export function CheckoutForm() {
                 <div className="aspect-[4/5]">
                   <MediaImage media={{ ...l.image, alt: "" }} />
                 </div>
-                <span className="absolute right-0.5 top-0.5 grid size-5 place-items-center rounded-full bg-chocolate text-[0.65rem] font-bold text-linen">{l.quantity}</span>
+                <span className="absolute right-0.5 top-0.5 grid size-5 place-items-center rounded-full bg-chocolate text-[0.65rem] font-bold text-linen">
+                  {l.quantity}
+                </span>
               </div>
               <div className="min-w-0 flex-1 text-sm">
                 <p className="truncate font-medium">{l.name}</p>
@@ -190,7 +210,12 @@ export function CheckoutForm() {
           </label>
           <div className="relative flex-1">
             <Tag className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-bark" aria-hidden />
-            <input id="coupon" name="coupon" placeholder="Discount code" className="h-11 w-full rounded-[2px] border border-sand-deep bg-linen pl-9 pr-3 text-sm uppercase placeholder:normal-case" />
+            <input
+              id="coupon"
+              name="coupon"
+              placeholder="Discount code"
+              className="h-11 w-full rounded-[2px] border border-sand-deep bg-linen pl-9 pr-3 text-sm uppercase placeholder:normal-case"
+            />
           </div>
           <Button variant="outline" onClick={() => toast.info("Discount codes are validated on the server from Stage 4.")}>
             Apply

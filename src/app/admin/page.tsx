@@ -54,7 +54,10 @@ export default async function AdminDashboard() {
 
       <ul className="grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-5">
         {kpis.map((k, i) => (
-          <li key={k.label} className={`rounded-[3px] border border-sand bg-white p-4 shadow-soft ${i === 0 ? "col-span-2 md:col-span-1 xl:row-span-2 xl:flex xl:flex-col xl:justify-center" : ""}`}>
+          <li
+            key={k.label}
+            className={`rounded-[3px] border border-sand bg-white p-4 shadow-soft ${i === 0 ? "col-span-2 md:col-span-1 xl:row-span-2 xl:flex xl:flex-col xl:justify-center" : ""}`}
+          >
             <p className="text-xs font-semibold uppercase tracking-[0.12em] text-bark">{k.label}</p>
             <p className={`mt-1.5 font-display tabular-nums ${i === 0 ? "text-4xl" : "text-2xl"}`}>{k.value}</p>
           </li>
@@ -93,10 +96,18 @@ export default async function AdminDashboard() {
           <table className="w-full min-w-[36rem] text-sm">
             <thead>
               <tr className="border-b border-sand text-left text-xs uppercase tracking-[0.1em] text-bark">
-                <th scope="col" className="px-5 py-3 font-semibold">Product</th>
-                <th scope="col" className="px-5 py-3 font-semibold">SKU</th>
-                <th scope="col" className="px-5 py-3 font-semibold">Variant</th>
-                <th scope="col" className="px-5 py-3 text-right font-semibold">Available</th>
+                <th scope="col" className="px-5 py-3 font-semibold">
+                  Product
+                </th>
+                <th scope="col" className="px-5 py-3 font-semibold">
+                  SKU
+                </th>
+                <th scope="col" className="px-5 py-3 font-semibold">
+                  Variant
+                </th>
+                <th scope="col" className="px-5 py-3 text-right font-semibold">
+                  Available
+                </th>
               </tr>
             </thead>
             <tbody>
@@ -104,7 +115,9 @@ export default async function AdminDashboard() {
                 <tr key={v.id} className="border-b border-sand/70 last:border-0 hover:bg-cream/50">
                   <td className="px-5 py-3 font-medium">{p.name}</td>
                   <td className="px-5 py-3 font-mono text-xs text-bark">{v.sku}</td>
-                  <td className="px-5 py-3">{v.colour} / {v.size}</td>
+                  <td className="px-5 py-3">
+                    {v.colour} / {v.size}
+                  </td>
                   <td className="px-5 py-3 text-right">
                     <Badge tone={v.stock === 0 ? "danger" : "warning"}>{v.stock === 0 ? "Sold out" : `${v.stock} left`}</Badge>
                   </td>

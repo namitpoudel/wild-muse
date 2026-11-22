@@ -4,6 +4,7 @@ import { Logo } from "@/components/brand/logo";
 import { FacebookIcon, InstagramIcon, TikTokIcon } from "@/components/brand/social-icons";
 import { footerNav } from "@/config/navigation";
 import { siteConfig } from "@/config/site";
+import { CookieSettingsButton } from "@/components/consent/cookie-settings-button";
 
 export function Footer() {
   const { contact, social } = siteConfig;
@@ -70,12 +71,17 @@ export function Footer() {
                 Join the newsletter
               </Link>
             </li>
+            <li>
+              <CookieSettingsButton label="Cookie settings" className="font-normal text-sand hover:text-linen" />
+            </li>
           </ul>
         </div>
       </div>
       <div className="border-t border-sand/15">
         <div className="container-page flex flex-col gap-3 py-6 text-xs text-sand-deep md:flex-row md:items-center md:justify-between">
-          <p>© {siteConfig.name} — {contact.address}. Prices in GBP.</p>
+          <p>
+            © {siteConfig.name} — {contact.address}. Prices in GBP.
+          </p>
           <p>Secure payments by Stripe · Visa · Mastercard · Amex · Apple Pay · Google Pay</p>
         </div>
       </div>

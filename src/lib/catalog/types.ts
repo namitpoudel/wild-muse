@@ -6,19 +6,7 @@
 export type Department = "women" | "men" | "kids" | "accessories";
 
 export type ArtworkKind =
-  | "dress"
-  | "top"
-  | "shirt"
-  | "trousers"
-  | "jacket"
-  | "knit"
-  | "bag"
-  | "necklace"
-  | "earrings"
-  | "scarf"
-  | "hat"
-  | "landscape"
-  | "loom";
+  "dress" | "top" | "shirt" | "trousers" | "jacket" | "knit" | "bag" | "necklace" | "earrings" | "scarf" | "hat" | "landscape" | "loom";
 
 export type ArtworkTone = "terracotta" | "olive" | "sand" | "chocolate" | "mustard" | "cream";
 

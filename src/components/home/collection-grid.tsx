@@ -8,7 +8,13 @@ import { cn } from "@/lib/utils";
 export function CollectionGrid({ collections }: { collections: Collection[] }) {
   return (
     <section className="container-page py-16 md:py-24" aria-labelledby="collections-heading">
-      <SectionHeading id="collections-heading" eyebrow="Featured collections" title="Stories woven into every edit" href="/collections" linkLabel="All collections" />
+      <SectionHeading
+        id="collections-heading"
+        eyebrow="Featured collections"
+        title="Stories woven into every edit"
+        href="/collections"
+        linkLabel="All collections"
+      />
       <ul className="grid auto-rows-[minmax(0,1fr)] grid-cols-2 gap-3 md:gap-4 lg:grid-cols-4">
         {collections.map((c, i) => (
           <li key={c.slug} className={cn(i === 0 && "col-span-2 row-span-2")}>

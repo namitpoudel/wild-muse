@@ -2,7 +2,7 @@
 
 Premium bohemian and handmade Nepali fashion — UK e-commerce platform (Next.js, TypeScript, Tailwind CSS).
 
-> Project status: **Stage 2 of 7 complete** (brand, design system, UI). See `docs/`.
+> Project status: **Stage 3 of 7 complete** (all customer-facing pages). See `docs/`.
 
 ## Run locally
 
@@ -27,8 +27,10 @@ Open http://localhost:3000. To view the admin design preview, start with `ENABLE
 | `npm run typecheck` | Generate route types and run TypeScript |
 | `npm run lint` | ESLint |
 | `npm run check:contrast` | WCAG 2.2 AA contrast check for the colour tokens |
+| `npm run format` | Format code with Prettier |
 
 ## Documentation
 - `docs/01-stage-1-research-and-plan.md` — market research, compliance, architecture, database design, costs
 - `docs/02-stage-2-design-system.md` — brand, design system, pages and verification
+- `docs/03-stage-3-frontend.md` — search, content pages, consent, SEO, verification
 - `docs/screenshots/` — desktop and mobile screenshots

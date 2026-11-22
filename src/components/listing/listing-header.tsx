@@ -31,9 +31,7 @@ export function ListingHeader({
                     aria-current={activeChip === c.href ? "page" : undefined}
                     className={cn(
                       "inline-flex h-9 items-center whitespace-nowrap rounded-full border px-4 text-xs font-semibold transition-colors",
-                      activeChip === c.href
-                        ? "border-chocolate bg-chocolate text-linen"
-                        : "border-sand-deep bg-linen/70 hover:border-chocolate",
+                      activeChip === c.href ? "border-chocolate bg-chocolate text-linen" : "border-sand-deep bg-linen/70 hover:border-chocolate",
                     )}
                   >
                     {c.label}

@@ -1,15 +1,18 @@
 import Link from "next/link";
 import { ChevronRight } from "lucide-react";
+import { JsonLd } from "@/components/seo/json-ld";
+import { breadcrumbJsonLd } from "@/lib/seo";
 
 export interface Crumb {
   label: string;
   href?: string;
 }
 
-/** Visible breadcrumb trail. Stage 3 adds matching BreadcrumbList JSON-LD. */
+/** Visible breadcrumb trail plus matching BreadcrumbList structured data. */
 export function Breadcrumbs({ items }: { items: Crumb[] }) {
   return (
     <nav aria-label="Breadcrumb" className="text-xs text-bark">
+      <JsonLd data={breadcrumbJsonLd(items)} />
       <ol className="flex flex-wrap items-center gap-1">
         {items.map((c, i) => (
           <li key={c.label} className="flex items-center gap-1">

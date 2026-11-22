@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import localFont from "next/font/local";
 import { Toaster } from "sonner";
 import { StoreProvider } from "@/components/cart/store-provider";
+import { ConsentManager } from "@/components/consent/consent-manager";
 import { siteConfig } from "@/config/site";
 import "./globals.css";
 
@@ -46,6 +47,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
         </a>
         <StoreProvider>
           {children}
+          <ConsentManager />
           <Toaster
             position="bottom-center"
             toastOptions={{

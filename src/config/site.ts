@@ -6,8 +6,7 @@
 export const siteConfig = {
   name: "WILD MUSE",
   slogan: "Find Your Wild. Wear Your Soul.",
-  description:
-    "Handmade bohemian clothing, jewellery and accessories crafted by artisans in Nepal. Free UK delivery over £75.",
+  description: "Handmade bohemian clothing, jewellery and accessories crafted by artisans in Nepal. Free UK delivery over £75.",
   url: process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000",
   contact: {
     email: "hello@example.com", // PLACEHOLDER — replace with business email
@@ -28,9 +27,5 @@ export const siteConfig = {
     returnDays: 30, // Statutory minimum is 14 days (Consumer Contracts Regs 2013); 30 is a commercial choice.
     newsletterDiscountPercent: 10,
   },
-  announcements: [
-    "Free UK delivery on orders over £75",
-    "Discover handmade fashion from Nepal",
-    "The new autumn collection is here",
-  ],
+  announcements: ["Free UK delivery on orders over £75", "Discover handmade fashion from Nepal", "The new autumn collection is here"],
 } as const;

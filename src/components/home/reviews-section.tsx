@@ -23,8 +23,12 @@ export function ReviewsSection({ reviews }: { reviews: ReviewView[] }) {
           </ul>
         ) : (
           <EmptyState icon={MessageSquareHeart} title="Our first reviews are on their way" className="mx-auto max-w-lg rounded-[2px] bg-linen">
-            Reviews appear here once customers have received their orders. Every review comes from a real account and verified purchases are
-            clearly marked. <Link href="/pages/review-policy" className="underline underline-offset-4">Read our review policy</Link>.
+            Reviews appear here once customers have received their orders. Every review comes from a real account and verified purchases are clearly
+            marked.{" "}
+            <Link href="/pages/review-policy" className="underline underline-offset-4">
+              Read our review policy
+            </Link>
+            .
           </EmptyState>
         )}
       </div>

@@ -30,7 +30,12 @@ const palette = [
 ];
 
 const artworks: [ArtworkKind, ArtworkTone][] = [
-  ["dress", "terracotta"], ["trousers", "mustard"], ["knit", "olive"], ["jacket", "chocolate"], ["bag", "sand"], ["necklace", "cream"],
+  ["dress", "terracotta"],
+  ["trousers", "mustard"],
+  ["knit", "olive"],
+  ["jacket", "chocolate"],
+  ["bag", "sand"],
+  ["necklace", "cream"],
 ];
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {

@@ -7,7 +7,11 @@ import { ProductRail } from "@/components/home/product-rail";
 import { ReviewsSection } from "@/components/home/reviews-section";
 import { SocialGallery } from "@/components/home/social-gallery";
 import { ValueStrip } from "@/components/home/value-strip";
+import { JsonLd } from "@/components/seo/json-ld";
 import { getBestSellers, getCollections, getNewArrivals } from "@/lib/catalog/queries";
+import { organizationJsonLd, websiteJsonLd } from "@/lib/seo";
+
+export const metadata = { alternates: { canonical: "/" } };
 
 /**
  * Homepage. In Stage 4 the order, visibility and content of every section
@@ -17,6 +21,8 @@ export default async function HomePage() {
   const [bestSellers, newArrivals, collections] = await Promise.all([getBestSellers(8), getNewArrivals(8), getCollections()]);
   return (
     <>
+      <JsonLd data={organizationJsonLd()} />
+      <JsonLd data={websiteJsonLd()} />
       <Hero
         content={{
           eyebrow: "Find your wild. Wear your soul.",

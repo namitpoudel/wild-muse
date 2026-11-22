@@ -39,8 +39,8 @@ export function HandmadeStory() {
             Made by hands, <em className="text-sand">not machines.</em>
           </h2>
           <p className="mt-5 text-sand">
-            We work with small workshops and independent makers across Nepal. Every piece carries the marks of the person who made it —
-            and we&apos;ll always tell you exactly how, where and from what it was made.
+            We work with small workshops and independent makers across Nepal. Every piece carries the marks of the person who made it — and we&apos;ll
+            always tell you exactly how, where and from what it was made.
           </p>
           <ul className="mt-8 space-y-5">
             {crafts.map((c, i) => (

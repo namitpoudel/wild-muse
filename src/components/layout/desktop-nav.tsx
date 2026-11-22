@@ -32,7 +32,10 @@ export function DesktopNav({ items }: { items: NavItem[] }) {
                           {g.links.map((l) => (
                             <li key={l.href}>
                               <NM.Link asChild>
-                                <Link href={l.href} className="text-[0.95rem] text-chocolate hover:text-terracotta hover:underline underline-offset-4">
+                                <Link
+                                  href={l.href}
+                                  className="text-[0.95rem] text-chocolate hover:text-terracotta hover:underline underline-offset-4"
+                                >
                                   {l.label}
                                 </Link>
                               </NM.Link>
@@ -43,7 +46,10 @@ export function DesktopNav({ items }: { items: NavItem[] }) {
                     ))}
                     <div className="col-span-3 border-t border-sand pt-5">
                       <NM.Link asChild>
-                        <Link href={item.href} className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-[0.16em] hover:text-terracotta">
+                        <Link
+                          href={item.href}
+                          className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-[0.16em] hover:text-terracotta"
+                        >
                           Shop all {item.label} <ArrowRight className="size-4" />
                         </Link>
                       </NM.Link>

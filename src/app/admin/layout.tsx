@@ -29,7 +29,10 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             <button type="button" className="grid size-10 place-items-center rounded-full hover:bg-sand" aria-label="Notifications">
               <Bell className="size-4.5" />
             </button>
-            <span className="grid size-9 place-items-center rounded-full bg-olive text-xs font-bold text-linen" aria-label="Signed in as Owner (preview)">
+            <span
+              className="grid size-9 place-items-center rounded-full bg-olive text-xs font-bold text-linen"
+              aria-label="Signed in as Owner (preview)"
+            >
               OW
             </span>
           </div>

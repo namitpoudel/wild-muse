@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { Heart, Search, ShoppingBag, User } from "lucide-react";
 import { useStore } from "@/components/cart/store-provider";
+import { SearchOverlay } from "./search-overlay";
 
 const iconBtn = "relative grid size-10 place-items-center rounded-full text-chocolate transition-colors hover:bg-sand/60";
 
@@ -20,17 +21,30 @@ export function HeaderActions() {
   const { itemCount, wishlist, setCartOpen, ready } = useStore();
   return (
     <div className="flex items-center">
-      <Link href="/search" className={iconBtn} aria-label="Search">
-        <Search className="size-5" />
-      </Link>
+      <SearchOverlay
+        trigger={
+          <button type="button" className={iconBtn} aria-label="Search">
+            <Search className="size-5" />
+          </button>
+        }
+      />
       <Link href="/account" className={`${iconBtn} hidden sm:grid`} aria-label="Your account">
         <User className="size-5" />
       </Link>
-      <Link href="/wishlist" className={`${iconBtn} hidden sm:grid`} aria-label={`Wishlist${ready && wishlist.length ? `, ${wishlist.length} items` : ""}`}>
+      <Link
+        href="/wishlist"
+        className={`${iconBtn} hidden sm:grid`}
+        aria-label={`Wishlist${ready && wishlist.length ? `, ${wishlist.length} items` : ""}`}
+      >
         <Heart className="size-5" />
         {ready && <CountBadge n={wishlist.length} label="saved items" />}
       </Link>
-      <button type="button" onClick={() => setCartOpen(true)} className={iconBtn} aria-label={`Shopping bag${ready && itemCount ? `, ${itemCount} items` : ""}`}>
+      <button
+        type="button"
+        onClick={() => setCartOpen(true)}
+        className={iconBtn}
+        aria-label={`Shopping bag${ready && itemCount ? `, ${itemCount} items` : ""}`}
+      >
         <ShoppingBag className="size-5" />
         {ready && <CountBadge n={itemCount} label="items in bag" />}
       </button>

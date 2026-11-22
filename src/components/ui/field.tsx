@@ -15,15 +15,7 @@ interface FieldProps {
 }
 
 /** Accessible text input: label, hint and error are all programmatically associated. */
-export function TextField({
-  label,
-  hint,
-  error,
-  optional,
-  className,
-  id,
-  ...props
-}: FieldProps & ComponentProps<"input">) {
+export function TextField({ label, hint, error, optional, className, id, ...props }: FieldProps & ComponentProps<"input">) {
   const auto = useId();
   const inputId = id ?? auto;
   const describedBy = [hint && `${inputId}-hint`, error && `${inputId}-error`].filter(Boolean).join(" ") || undefined;
@@ -33,13 +25,7 @@ export function TextField({
         {label}
         {optional && <span className="text-xs font-normal text-bark">Optional</span>}
       </label>
-      <input
-        id={inputId}
-        aria-invalid={error ? true : undefined}
-        aria-describedby={describedBy}
-        className={cn(control, "h-11")}
-        {...props}
-      />
+      <input id={inputId} aria-invalid={error ? true : undefined} aria-describedby={describedBy} className={cn(control, "h-11")} {...props} />
       {hint && !error && (
         <p id={`${inputId}-hint`} className="text-xs text-bark">
           {hint}
@@ -80,13 +66,7 @@ export function TextArea({ label, hint, error, optional, className, id, ...props
   );
 }
 
-export function SelectField({
-  label,
-  className,
-  id,
-  children,
-  ...props
-}: FieldProps & ComponentProps<"select">) {
+export function SelectField({ label, className, id, children, ...props }: FieldProps & ComponentProps<"select">) {
   const auto = useId();
   const inputId = id ?? auto;
   return (

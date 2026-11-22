@@ -41,10 +41,19 @@ export default async function CategoryPage({ params }: PageProps<"/[department]/
       <ListingHeader
         title={cat.name}
         crumbs={[{ label: "Home", href: "/" }, { label: dept.name, href: `/${dept.slug}` }, { label: cat.name }]}
-        chips={[{ label: "All", href: `/${dept.slug}` }, ...getCategoriesFor(dept.slug).map((c) => ({ label: c.name, href: `/${dept.slug}/${c.slug}` }))]}
+        chips={[
+          { label: "All", href: `/${dept.slug}` },
+          ...getCategoriesFor(dept.slug).map((c) => ({ label: c.name, href: `/${dept.slug}/${c.slug}` })),
+        ]}
         activeChip={`/${dept.slug}/${cat.slug}`}
       />
-      <Suspense fallback={<div className="container-page py-12"><ProductGridSkeleton /></div>}>
+      <Suspense
+        fallback={
+          <div className="container-page py-12">
+            <ProductGridSkeleton />
+          </div>
+        }
+      >
         <ProductListing products={products} facets={getFacets(products.length ? products : all)} />
       </Suspense>
     </>

@@ -13,7 +13,9 @@ import { ButtonLink } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/empty-state";
 import { Price } from "@/components/ui/price";
 import { StarRating } from "@/components/ui/star-rating";
+import { JsonLd } from "@/components/seo/json-ld";
 import { getCategory, getDepartment } from "@/lib/catalog/categories";
+import { productJsonLd } from "@/lib/seo";
 import { getAllProductSlugs, getProductBySlug, getProducts, getRelatedProducts, isNewArrival } from "@/lib/catalog/queries";
 
 export async function generateStaticParams() {
@@ -68,7 +70,10 @@ export default async function ProductPage({ params }: PageProps<"/products/[slug
             <strong className="text-chocolate">Country of origin:</strong> {product.countryOfOrigin}
           </p>
           {product.isHandmade && (
-            <p>{product.craftStory ?? "Made by hand by artisans in Nepal, so small variations in colour, weave and finish are part of each piece's character."}</p>
+            <p>
+              {product.craftStory ??
+                "Made by hand by artisans in Nepal, so small variations in colour, weave and finish are part of each piece's character."}
+            </p>
           )}
           <Link href="/handmade-in-nepal/meet-the-artisans" className="font-semibold text-terracotta underline underline-offset-4">
             Meet the makers
@@ -96,6 +101,7 @@ export default async function ProductPage({ params }: PageProps<"/products/[slug
 
   return (
     <>
+      <JsonLd data={productJsonLd(product)} />
       <div className="container-page pt-6">
         <Breadcrumbs
           items={[

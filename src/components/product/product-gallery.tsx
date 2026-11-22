@@ -32,7 +32,10 @@ export function ProductGallery({ images, name }: { images: MediaAsset[]; name: s
               onClick={() => setActive(i)}
               aria-label={`Show image ${i + 1} of ${images.length}`}
               aria-current={active === i}
-              className={cn("block aspect-[4/5] w-full overflow-hidden rounded-[2px] ring-offset-2 ring-offset-linen", active === i ? "ring-2 ring-chocolate" : "opacity-75 hover:opacity-100")}
+              className={cn(
+                "block aspect-[4/5] w-full overflow-hidden rounded-[2px] ring-offset-2 ring-offset-linen",
+                active === i ? "ring-2 ring-chocolate" : "opacity-75 hover:opacity-100",
+              )}
             >
               <MediaImage media={{ ...m, alt: "" }} />
             </button>
@@ -71,7 +74,12 @@ export function ProductGallery({ images, name }: { images: MediaAsset[]; name: s
 
       {/* Mobile/tablet: swipe */}
       <div className="lg:hidden">
-        <div ref={scroller} onScroll={onScroll} className="-mx-4 flex snap-x snap-mandatory overflow-x-auto scrollbar-none md:mx-0" aria-label={`${name} images, swipe to see more`}>
+        <div
+          ref={scroller}
+          onScroll={onScroll}
+          className="-mx-4 flex snap-x snap-mandatory overflow-x-auto scrollbar-none md:mx-0"
+          aria-label={`${name} images, swipe to see more`}
+        >
           {images.map((m, i) => (
             <div key={i} className="aspect-[4/5] w-full shrink-0 snap-center bg-sand" onClick={() => setFull(true)}>
               <MediaImage media={m} priority={i === 0} />

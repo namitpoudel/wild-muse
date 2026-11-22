@@ -30,13 +30,23 @@ export function AnnouncementBar({ messages }: { messages: readonly string[] }) {
       aria-label="Announcements"
     >
       <div className="container-page flex h-9 items-center justify-between gap-2">
-        <button type="button" onClick={() => go(-1)} className="grid size-7 place-items-center rounded-full hover:text-linen" aria-label="Previous announcement">
+        <button
+          type="button"
+          onClick={() => go(-1)}
+          className="grid size-7 place-items-center rounded-full hover:text-linen"
+          aria-label="Previous announcement"
+        >
           <ChevronLeft className="size-4" />
         </button>
         <p key={index} className="animate-fade-in truncate text-center text-[0.7rem] font-semibold uppercase tracking-[0.18em]" aria-live="polite">
           {messages[index]}
         </p>
-        <button type="button" onClick={() => go(1)} className="grid size-7 place-items-center rounded-full hover:text-linen" aria-label="Next announcement">
+        <button
+          type="button"
+          onClick={() => go(1)}
+          className="grid size-7 place-items-center rounded-full hover:text-linen"
+          aria-label="Next announcement"
+        >
           <ChevronRight className="size-4" />
         </button>
       </div>

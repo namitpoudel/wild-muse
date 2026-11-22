@@ -76,7 +76,10 @@ export function MobileNav({ items }: { items: NavItem[] }) {
             </Link>
           </div>
           <p className="px-5 pb-8 text-xs text-bark">
-            Need help? <a className="underline" href={`mailto:${siteConfig.contact.email}`}>{siteConfig.contact.email}</a>
+            Need help?{" "}
+            <a className="underline" href={`mailto:${siteConfig.contact.email}`}>
+              {siteConfig.contact.email}
+            </a>
           </p>
         </nav>
       </SheetContent>

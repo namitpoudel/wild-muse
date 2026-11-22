@@ -272,8 +272,7 @@ const seeds: Seed[] = [
     colours: [C.charcoal, C.olive],
     sizes: MEN_SIZES,
     shortDescription: "Heavyweight cotton harem trousers with deep pockets.",
-    description:
-      "Built for wandering: heavyweight cotton harem trousers with a drawstring waist, deep side pockets and a tapered ankle.",
+    description: "Built for wandering: heavyweight cotton harem trousers with a drawstring waist, deep side pockets and a tapered ankle.",
     fibreComposition: "100% cotton",
     materials: "Brushed cotton twill",
     care: ["Machine wash 40°C", "Tumble dry low"],
@@ -364,8 +363,7 @@ const seeds: Seed[] = [
     colours: [C.terracotta, C.olive],
     sizes: ["One size"],
     shortDescription: "Layered glass-bead necklace, strung by hand.",
-    description:
-      "A long, layered necklace of glass seed beads in earthy tones, hand-strung and finished with a brass toggle clasp.",
+    description: "A long, layered necklace of glass seed beads in earthy tones, hand-strung and finished with a brass toggle clasp.",
     fibreComposition: "Not applicable (jewellery)",
     materials: "Glass seed beads, cotton cord, brass clasp",
     care: ["Keep dry", "Store flat to avoid tangling"],
@@ -483,11 +481,46 @@ export const demoProducts: Product[] = seeds.map(({ kind, tones, ...p }, index) 
 }));
 
 export const demoCollections: Collection[] = [
-  { slug: "the-bohemian-edit", name: "The Bohemian Edit", tagline: "Flowing silhouettes, hand-finished details", image: { kind: "dress", tone: "terracotta", alt: "The Bohemian Edit collection (placeholder image)" } },
-  { slug: "himalayan-heritage", name: "Himalayan Heritage", tagline: "Dhaka, wool and allo from the hills of Nepal", image: { kind: "landscape", tone: "olive", alt: "Himalayan Heritage collection (placeholder image)" } },
-  { slug: "festival-freedom", name: "Festival Freedom", tagline: "Made for fields, firelight and dancing", image: { kind: "trousers", tone: "mustard", alt: "Festival Freedom collection (placeholder image)" } },
-  { slug: "earth-and-soul", name: "Earth & Soul", tagline: "Hemp, cotton and quiet, earthy tones", image: { kind: "bag", tone: "sand", alt: "Earth & Soul collection (placeholder image)" } },
-  { slug: "wild-women", name: "Wild Women", tagline: "Pieces with presence", image: { kind: "top", tone: "chocolate", alt: "Wild Women collection (placeholder image)" } },
-  { slug: "free-spirits", name: "Free Spirits", tagline: "Easy pieces for every wanderer", image: { kind: "shirt", tone: "cream", alt: "Free Spirits collection (placeholder image)" } },
-  { slug: "handmade-treasures", name: "Handmade Treasures", tagline: "Jewellery and keepsakes, made by hand", image: { kind: "necklace", tone: "terracotta", alt: "Handmade Treasures collection (placeholder image)" } },
+  {
+    slug: "the-bohemian-edit",
+    name: "The Bohemian Edit",
+    tagline: "Flowing silhouettes, hand-finished details",
+    image: { kind: "dress", tone: "terracotta", alt: "The Bohemian Edit collection (placeholder image)" },
+  },
+  {
+    slug: "himalayan-heritage",
+    name: "Himalayan Heritage",
+    tagline: "Dhaka, wool and allo from the hills of Nepal",
+    image: { kind: "landscape", tone: "olive", alt: "Himalayan Heritage collection (placeholder image)" },
+  },
+  {
+    slug: "festival-freedom",
+    name: "Festival Freedom",
+    tagline: "Made for fields, firelight and dancing",
+    image: { kind: "trousers", tone: "mustard", alt: "Festival Freedom collection (placeholder image)" },
+  },
+  {
+    slug: "earth-and-soul",
+    name: "Earth & Soul",
+    tagline: "Hemp, cotton and quiet, earthy tones",
+    image: { kind: "bag", tone: "sand", alt: "Earth & Soul collection (placeholder image)" },
+  },
+  {
+    slug: "wild-women",
+    name: "Wild Women",
+    tagline: "Pieces with presence",
+    image: { kind: "top", tone: "chocolate", alt: "Wild Women collection (placeholder image)" },
+  },
+  {
+    slug: "free-spirits",
+    name: "Free Spirits",
+    tagline: "Easy pieces for every wanderer",
+    image: { kind: "shirt", tone: "cream", alt: "Free Spirits collection (placeholder image)" },
+  },
+  {
+    slug: "handmade-treasures",
+    name: "Handmade Treasures",
+    tagline: "Jewellery and keepsakes, made by hand",
+    image: { kind: "necklace", tone: "terracotta", alt: "Handmade Treasures collection (placeholder image)" },
+  },
 ];

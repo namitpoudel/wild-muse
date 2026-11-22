@@ -28,9 +28,7 @@ export function CartLineItem({ line, onNavigate }: { line: CartLine; onNavigate?
           </div>
           <Price pricePence={line.unitPricePence * line.quantity} className="shrink-0 justify-end text-right" showSaving={false} />
         </div>
-        {line.quantity >= line.maxQuantity && (
-          <p className="mt-1 text-xs font-medium text-warning">Only {line.maxQuantity} available</p>
-        )}
+        {line.quantity >= line.maxQuantity && <p className="mt-1 text-xs font-medium text-warning">Only {line.maxQuantity} available</p>}
         <div className="mt-auto flex items-center justify-between pt-3">
           <QuantitySelector
             size="sm"

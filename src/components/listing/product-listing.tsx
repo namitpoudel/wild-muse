@@ -114,9 +114,7 @@ export function ProductListing({ products, facets }: { products: Product[]; face
     ...(sel.sale ? [{ key: "sale", v: "", label: "On sale" }] : []),
   ];
 
-  const filters = (
-    <FilterPanel facets={facets} sel={sel} toggle={toggle} setFlag={setFlag} />
-  );
+  const filters = <FilterPanel facets={facets} sel={sel} toggle={toggle} setFlag={setFlag} />;
 
   return (
     <div className="container-page py-8 md:py-12">
@@ -258,7 +256,10 @@ function FilterPanel({
               type="button"
               aria-pressed={sel.colour.includes(c.name)}
               onClick={() => toggle("colour", c.name)}
-              className={cn("flex items-center gap-2 rounded-[2px] px-1.5 py-1 text-left text-sm", sel.colour.includes(c.name) && "bg-sand font-semibold")}
+              className={cn(
+                "flex items-center gap-2 rounded-[2px] px-1.5 py-1 text-left text-sm",
+                sel.colour.includes(c.name) && "bg-sand font-semibold",
+              )}
             >
               <span className="size-4 shrink-0 rounded-full ring-1 ring-chocolate/20" style={{ backgroundColor: c.hex }} aria-hidden />
               {c.name}

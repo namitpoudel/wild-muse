@@ -35,7 +35,13 @@ export default async function DepartmentPage({ params }: PageProps<"/[department
         chips={[{ label: "All", href: `/${dept.slug}` }, ...cats.map((c) => ({ label: c.name, href: `/${dept.slug}/${c.slug}` }))]}
         activeChip={`/${dept.slug}`}
       />
-      <Suspense fallback={<div className="container-page py-12"><ProductGridSkeleton /></div>}>
+      <Suspense
+        fallback={
+          <div className="container-page py-12">
+            <ProductGridSkeleton />
+          </div>
+        }
+      >
         <ProductListing products={products} facets={getFacets(products)} />
       </Suspense>
     </>

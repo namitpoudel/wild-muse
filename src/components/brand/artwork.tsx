@@ -33,7 +33,10 @@ function Silhouette({ kind, fg, accent }: { kind: ArtworkKind; fg: string; accen
     case "shirt":
       return (
         <g>
-          <path d="M150 110 L182 94 Q200 116 218 94 L250 110 L302 178 L273 196 L253 166 L255 336 Q200 346 145 336 L147 166 L127 196 L98 178 Z" fill={fg} />
+          <path
+            d="M150 110 L182 94 Q200 116 218 94 L250 110 L302 178 L273 196 L253 166 L255 336 Q200 346 145 336 L147 166 L127 196 L98 178 Z"
+            fill={fg}
+          />
           {kind === "shirt" ? (
             <g fill={accent}>
               {[150, 185, 220, 255, 290].map((y) => (
@@ -56,7 +59,10 @@ function Silhouette({ kind, fg, accent }: { kind: ArtworkKind; fg: string; accen
     case "jacket":
       return (
         <g>
-          <path d="M145 100 L182 88 L200 142 L218 88 L255 100 L302 222 L302 332 L273 337 L263 212 L263 378 L137 378 L137 212 L127 337 L98 332 L98 222 Z" fill={fg} />
+          <path
+            d="M145 100 L182 88 L200 142 L218 88 L255 100 L302 222 L302 332 L273 337 L263 212 L263 378 L137 378 L137 212 L127 337 L98 332 L98 222 Z"
+            fill={fg}
+          />
           <path d="M137 212 L263 212 M137 290 L263 290" stroke={accent} strokeWidth="4" strokeDasharray="14 6" />
           <path d="M200 142 L200 378" stroke={accent} strokeWidth="3" />
         </g>
@@ -107,7 +113,11 @@ function Silhouette({ kind, fg, accent }: { kind: ArtworkKind; fg: string; accen
         <g>
           <path d="M150 80 L250 80 L264 418 L232 440 L214 150 L186 150 L168 440 L136 418 Z" fill={fg} />
           <path d="M150 120 L250 120 M144 220 L176 220 M224 220 L256 220 M140 320 L172 320 M228 320 L260 320" stroke={accent} strokeWidth="6" />
-          <path d="M140 430 L140 458 M150 436 L150 462 M160 440 L160 466 M236 440 L236 466 M246 436 L246 462 M256 430 L256 458" stroke={fg} strokeWidth="3" />
+          <path
+            d="M140 430 L140 458 M150 436 L150 462 M160 440 L160 466 M236 440 L236 466 M246 436 L246 462 M256 430 L256 458"
+            stroke={fg}
+            strokeWidth="3"
+          />
         </g>
       );
     case "hat":
@@ -197,21 +207,34 @@ export function Artwork({
 }
 
 /** Renders the uploaded image when present, otherwise branded artwork. */
-export function MediaImage({
-  media,
-  className,
-  sizes,
-  priority,
-}: {
-  media: MediaAsset;
-  className?: string;
-  sizes?: string;
-  priority?: boolean;
-}) {
+export function MediaImage({ media, className, sizes, priority }: { media: MediaAsset; className?: string; sizes?: string; priority?: boolean }) {
+  if (media.src && /\.(mp4|webm)(\?|$)/i.test(media.src)) {
+    // Product video (Stage 4 uploads): muted, looping, no autoplay for reduced-motion users via controls.
+    return (
+      <video
+        src={media.src}
+        aria-label={media.alt}
+        className={cn("h-full w-full object-cover", className)}
+        muted
+        loop
+        playsInline
+        controls
+        preload="metadata"
+      />
+    );
+  }
   if (media.src) {
     // Real photography path (Stage 4 uploads). next/image handles responsive sizes + lazy loading.
-    // eslint-disable-next-line @next/next/no-img-element -- replaced by next/image once a remote image domain is configured in Stage 4
-    return <img src={media.src} alt={media.alt} sizes={sizes} loading={priority ? "eager" : "lazy"} className={cn("h-full w-full object-cover", className)} />;
+    return (
+      // eslint-disable-next-line @next/next/no-img-element -- replaced by next/image once a remote image domain is configured in Stage 4
+      <img
+        src={media.src}
+        alt={media.alt}
+        sizes={sizes}
+        loading={priority ? "eager" : "lazy"}
+        className={cn("h-full w-full object-cover", className)}
+      />
+    );
   }
   return <Artwork kind={media.kind} tone={media.tone} label={media.alt} className={className} />;
 }

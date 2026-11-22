@@ -23,7 +23,10 @@ export default function NotFound() {
             </ButtonLink>
           </div>
           <p className="mt-6 text-sm">
-            Need help? <Link href="/pages/contact" className="underline underline-offset-4">Contact us</Link>
+            Need help?{" "}
+            <Link href="/pages/contact" className="underline underline-offset-4">
+              Contact us
+            </Link>
           </p>
         </div>
         <div className="mx-auto aspect-[4/5] w-full max-w-sm overflow-hidden rounded-t-[999px]">

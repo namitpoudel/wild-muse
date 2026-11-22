@@ -144,7 +144,9 @@ export function BuyBox({ product }: { product: Product }) {
                   )}
                 >
                   {s}
-                  {!out && v && v.stock <= LOW_STOCK && size !== s && <span className="absolute right-1 top-1 size-1.5 rounded-full bg-burnt" aria-hidden />}
+                  {!out && v && v.stock <= LOW_STOCK && size !== s && (
+                    <span className="absolute right-1 top-1 size-1.5 rounded-full bg-burnt" aria-hidden />
+                  )}
                 </button>
               );
             })}

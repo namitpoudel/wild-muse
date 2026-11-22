@@ -37,10 +37,7 @@ export function DialogContent({
           <D.Description className="sr-only">{title}</D.Description>
         )}
         <div className="mt-5">{children}</div>
-        <D.Close
-          className="absolute right-4 top-4 grid size-9 place-items-center rounded-full text-chocolate hover:bg-sand"
-          aria-label="Close"
-        >
+        <D.Close className="absolute right-4 top-4 grid size-9 place-items-center rounded-full text-chocolate hover:bg-sand" aria-label="Close">
           <X className="size-5" />
         </D.Close>
       </D.Content>

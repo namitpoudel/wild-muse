@@ -19,7 +19,12 @@ export function CategoryTiles() {
           <li key={t.href}>
             <Link href={t.href} className="group block">
               <div className="aspect-[3/4] overflow-hidden rounded-t-[999px] bg-sand">
-                <Artwork kind={t.kind} tone={t.tone} label={`Shop ${t.name} (placeholder image)`} className="transition-transform duration-700 group-hover:scale-[1.04]" />
+                <Artwork
+                  kind={t.kind}
+                  tone={t.tone}
+                  label={`Shop ${t.name} (placeholder image)`}
+                  className="transition-transform duration-700 group-hover:scale-[1.04]"
+                />
               </div>
               <p className="mt-4 text-center font-display text-2xl transition-colors group-hover:text-terracotta">{t.name}</p>
               <p className="text-center text-xs font-bold uppercase tracking-[0.16em] text-bark">Shop now</p>

@@ -107,7 +107,13 @@ export function getFacets(products: Product[]) {
     p.colours.forEach((c) => colours.set(c.name, c.hex));
     p.fibreComposition
       .split(/[.,]/)
-      .map((m) => m.replace(/.*?\d+%\s*/, "").replace(/\(.*\)/, "").trim().toLowerCase())
+      .map((m) =>
+        m
+          .replace(/.*?\d+%\s*/, "")
+          .replace(/\(.*\)/, "")
+          .trim()
+          .toLowerCase(),
+      )
       .filter((m) => m && !m.includes("applicable") && m.length < 20)
       .forEach((m) => materials.add(m.replace(/^./, (ch) => ch.toUpperCase())));
     min = Math.min(min, p.pricePence);
@@ -123,7 +129,12 @@ export function getFacets(products: Product[]) {
 
 /** "New" badge: the most recently published products (date-free, so pages can be prerendered). */
 const NEW_COUNT = 6;
-const newSlugs = new Set([...demoProducts].sort(byNewest).slice(0, NEW_COUNT).map((p) => p.slug));
+const newSlugs = new Set(
+  [...demoProducts]
+    .sort(byNewest)
+    .slice(0, NEW_COUNT)
+    .map((p) => p.slug),
+);
 export function isNewArrival(p: Product) {
   return newSlugs.has(p.slug);
 }

@@ -56,24 +56,46 @@
   --animate-shimmer: shimmer 1.6s linear infinite;
 
   @keyframes fade-up {
-    from { opacity: 0; transform: translateY(12px); }
-    to { opacity: 1; transform: none; }
+    from {
+      opacity: 0;
+      transform: translateY(12px);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
   }
   @keyframes slide-in-left {
-    from { transform: translateX(-100%); }
-    to { transform: none; }
+    from {
+      transform: translateX(-100%);
+    }
+    to {
+      transform: none;
+    }
   }
   @keyframes slide-in-right {
-    from { transform: translateX(100%); }
-    to { transform: none; }
+    from {
+      transform: translateX(100%);
+    }
+    to {
+      transform: none;
+    }
   }
   @keyframes fade-in {
-    from { opacity: 0; }
-    to { opacity: 1; }
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
   }
   @keyframes shimmer {
-    from { background-position: -200% 0; }
-    to { background-position: 200% 0; }
+    from {
+      background-position: -200% 0;
+    }
+    to {
+      background-position: 200% 0;
+    }
   }
 }
 
@@ -97,11 +119,13 @@ body {
 
 /* Subtle woven-paper grain used on cream sections. Pure CSS, no image request. */
 .texture-grain {
-  background-image:
-    radial-gradient(rgb(58 36 23 / 0.035) 1px, transparent 1px),
-    radial-gradient(rgb(58 36 23 / 0.025) 1px, transparent 1px);
-  background-size: 7px 7px, 11px 11px;
-  background-position: 0 0, 3px 5px;
+  background-image: radial-gradient(rgb(58 36 23 / 0.035) 1px, transparent 1px), radial-gradient(rgb(58 36 23 / 0.025) 1px, transparent 1px);
+  background-size:
+    7px 7px,
+    11px 11px;
+  background-position:
+    0 0,
+    3px 5px;
 }
 
 /* Visible, on-brand focus ring for keyboard users only. */

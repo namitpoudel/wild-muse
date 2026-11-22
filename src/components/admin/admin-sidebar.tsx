@@ -1,12 +1,33 @@
 import Link from "next/link";
 import {
-  BarChart3, Boxes, ClipboardList, FileText, Image as ImageIcon, LayoutDashboard, Megaphone, Package, ScrollText,
-  Settings, ShieldCheck, ShoppingCart, Star, Tag, Truck, Users, Factory,
+  BarChart3,
+  Boxes,
+  ClipboardList,
+  FileText,
+  Image as ImageIcon,
+  LayoutDashboard,
+  Megaphone,
+  Package,
+  ScrollText,
+  Settings,
+  ShieldCheck,
+  ShoppingCart,
+  Star,
+  Tag,
+  Truck,
+  Users,
+  Factory,
 } from "lucide-react";
 import { LogoMark } from "@/components/brand/logo";
 
 export const adminNav = [
-  { group: "Overview", items: [{ href: "/admin", label: "Dashboard", Icon: LayoutDashboard }, { href: "/admin/reports", label: "Reports", Icon: BarChart3 }] },
+  {
+    group: "Overview",
+    items: [
+      { href: "/admin", label: "Dashboard", Icon: LayoutDashboard },
+      { href: "/admin/reports", label: "Reports", Icon: BarChart3 },
+    ],
+  },
   {
     group: "Sales",
     items: [

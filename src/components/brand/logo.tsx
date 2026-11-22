@@ -20,8 +20,10 @@ export function Logo({ className, tone = "dark" }: { className?: string; tone?: 
       aria-label="Wild Muse — home"
       className={cn("inline-flex items-center gap-2.5", tone === "light" ? "text-linen" : "text-chocolate", className)}
     >
-      <LogoMark className="size-7 md:size-8" />
-      <span className="font-display text-[1.35rem] font-medium leading-none tracking-[0.22em] md:text-[1.55rem]">WILD MUSE</span>
+      <LogoMark className="size-6 shrink-0 min-[400px]:size-7 md:size-8" />
+      <span className="whitespace-nowrap font-display text-[1.1rem] font-medium leading-none tracking-[0.16em] min-[400px]:text-[1.3rem] min-[400px]:tracking-[0.22em] md:text-[1.55rem]">
+        WILD MUSE
+      </span>
     </Link>
   );
 }

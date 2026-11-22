@@ -47,7 +47,11 @@ export function QuickAdd({ product }: { product: Product }) {
   return (
     <div className="absolute inset-x-2 bottom-2 z-10">
       {open ? (
-        <div className="animate-fade-in rounded-[2px] bg-linen/95 p-2.5 shadow-soft backdrop-blur" role="group" aria-label={`Choose a size for ${product.name}, ${colour.name}`}>
+        <div
+          className="animate-fade-in rounded-[2px] bg-linen/95 p-2.5 shadow-soft backdrop-blur"
+          role="group"
+          aria-label={`Choose a size for ${product.name}, ${colour.name}`}
+        >
           <p className="mb-2 text-center text-[0.65rem] font-bold uppercase tracking-[0.14em] text-bark">{colour.name} · choose size</p>
           <div className="flex flex-wrap justify-center gap-1.5">
             {variants.map((v) => (
