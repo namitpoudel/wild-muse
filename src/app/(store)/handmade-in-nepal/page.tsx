@@ -5,8 +5,8 @@ import { Artwork } from "@/components/brand/artwork";
 import { HandmadeStory } from "@/components/home/handmade-story";
 import { ProductRail } from "@/components/home/product-rail";
 import { Breadcrumbs } from "@/components/ui/breadcrumbs";
-import { handmadePages } from "@/content/handmade";
-import { getProducts } from "@/lib/catalog/queries";
+import { getHandmadePages } from "@/server/content/pages";
+import { getProducts } from "@/server/catalog/queries";
 
 export const metadata: Metadata = {
   title: "Handmade in Nepal",
@@ -15,7 +15,8 @@ export const metadata: Metadata = {
 };
 
 export default async function HandmadeHubPage() {
-  const handmade = (await getProducts({ sort: "newest" })).filter((p) => p.isHandmade).slice(0, 8);
+  const [all, handmadePages] = await Promise.all([getProducts({ sort: "newest" }), getHandmadePages()]);
+  const handmade = all.filter((p) => p.isHandmade).slice(0, 8);
   return (
     <>
       <section className="relative overflow-hidden bg-chocolate text-linen">
@@ -42,7 +43,12 @@ export default async function HandmadeHubPage() {
             <li key={p.slug}>
               <Link href={`/handmade-in-nepal/${p.slug}`} className="group block">
                 <div className="aspect-[3/2] overflow-hidden rounded-[2px]">
-                  <Artwork kind={p.art.kind} tone={p.art.tone} label="" className="transition-transform duration-700 group-hover:scale-[1.04]" />
+                  <Artwork
+                    kind={p.art?.kind ?? "loom"}
+                    tone={p.art?.tone ?? "sand"}
+                    label=""
+                    className="transition-transform duration-700 group-hover:scale-[1.04]"
+                  />
                 </div>
                 <h2 className="mt-4 font-display text-2xl group-hover:text-terracotta">{p.title}</h2>
                 <p className="mt-1 text-sm text-bark">{p.summary}</p>

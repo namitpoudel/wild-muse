@@ -1,9 +1,12 @@
+"use client";
+
 import { Truck } from "lucide-react";
-import { siteConfig } from "@/config/site";
+import { useConfig } from "@/components/config-provider";
 import { formatPence } from "@/lib/money";
 
 export function FreeDeliveryMeter({ subtotalPence }: { subtotalPence: number }) {
-  const threshold = siteConfig.commerce.freeDeliveryThresholdPence;
+  const threshold = useConfig().freeDeliveryThresholdPence;
+  if (threshold === null) return null;
   const remaining = Math.max(0, threshold - subtotalPence);
   const pct = Math.min(100, Math.round((subtotalPence / threshold) * 100));
   return (

@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { SimpleListingPage } from "@/components/listing/simple-listing-page";
-import { getProducts } from "@/lib/catalog/queries";
+import { getProducts } from "@/server/catalog/queries";
 
 export const metadata: Metadata = {
   title: "Best Sellers",

@@ -1,9 +1,8 @@
 import type { Category, Department } from "./types";
 
 /**
- * Category tree as specified in the brief. In Stage 4 this is loaded from the
- * `Category` table and fully editable in the admin dashboard; this file then
- * becomes the seed source.
+ * Departments are fixed; the category tree below is the SEED source only —
+ * the live tree comes from the Category table (editable in Admin → Categories).
  */
 type Def = [slug: string, name: string, group: string];
 
@@ -84,17 +83,10 @@ export function getDepartment(slug: string) {
   return departments.find((d) => d.slug === slug);
 }
 
-export function getCategoriesFor(department: Department) {
-  return categories.filter((c) => c.department === department);
-}
-
-export function getCategory(department: Department, slug: string) {
-  return categories.find((c) => c.department === department && c.slug === slug);
-}
-
-export function groupCategories(department: Department) {
+/** Group a department's categories into mega-menu columns (pure — pass the live category list). */
+export function groupCategories(list: Category[], department: Department) {
   const groups = new Map<string, Category[]>();
-  for (const c of getCategoriesFor(department)) {
+  for (const c of list.filter((x) => x.department === department)) {
     groups.set(c.group, [...(groups.get(c.group) ?? []), c]);
   }
   return [...groups.entries()].map(([name, items]) => ({ name, items }));

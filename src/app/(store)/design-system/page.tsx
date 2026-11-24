@@ -11,7 +11,7 @@ import { Checkbox, TextField } from "@/components/ui/field";
 import { Price } from "@/components/ui/price";
 import { ProductCardSkeleton } from "@/components/ui/skeleton";
 import { FeedbackDemo } from "@/components/ui/toast-demo";
-import { getProducts } from "@/lib/catalog/queries";
+import { getProducts } from "@/server/catalog/queries";
 import type { ArtworkKind, ArtworkTone } from "@/lib/catalog/types";
 
 export const metadata: Metadata = { title: "Design system", robots: { index: false } };

@@ -3,7 +3,10 @@ import localFont from "next/font/local";
 import { Toaster } from "sonner";
 import { StoreProvider } from "@/components/cart/store-provider";
 import { ConsentManager } from "@/components/consent/consent-manager";
+import { ConfigProvider } from "@/components/config-provider";
 import { siteConfig } from "@/config/site";
+import { getPublicConfig } from "@/server/public-config";
+import { getSettings } from "@/server/settings";
 import "./globals.css";
 
 const fraunces = localFont({
@@ -22,12 +25,15 @@ const manrope = localFont({
   display: "swap",
 });
 
-export const metadata: Metadata = {
-  metadataBase: new URL(siteConfig.url),
-  title: { default: `${siteConfig.name} — Handmade Bohemian Fashion from Nepal`, template: `%s | ${siteConfig.name}` },
-  description: siteConfig.description,
-  openGraph: { siteName: siteConfig.name, locale: "en_GB", type: "website" },
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const s = await getSettings();
+  return {
+    metadataBase: new URL(siteConfig.url),
+    title: { default: s.seo.defaultTitle, template: `%s | ${s.business.name}` },
+    description: s.seo.defaultDescription,
+    openGraph: { siteName: s.business.name, locale: "en_GB", type: "website" },
+  };
+}
 
 export const viewport: Viewport = {
   themeColor: "#fbf7f0",
@@ -35,7 +41,8 @@ export const viewport: Viewport = {
   initialScale: 1,
 };
 
-export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
+export default async function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
+  const config = await getPublicConfig();
   return (
     <html lang="en-GB" className={`${fraunces.variable} ${manrope.variable}`}>
       <body className="min-h-dvh">
@@ -45,16 +52,18 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
         >
           Skip to content
         </a>
-        <StoreProvider>
-          {children}
-          <ConsentManager />
-          <Toaster
-            position="bottom-center"
-            toastOptions={{
-              className: "!rounded-[2px] !border-sand !bg-linen !text-chocolate !font-sans !shadow-lift",
-            }}
-          />
-        </StoreProvider>
+        <ConfigProvider value={config}>
+          <StoreProvider>
+            {children}
+            <ConsentManager />
+            <Toaster
+              position="bottom-center"
+              toastOptions={{
+                className: "!rounded-[2px] !border-sand !bg-linen !text-chocolate !font-sans !shadow-lift",
+              }}
+            />
+          </StoreProvider>
+        </ConfigProvider>
       </body>
     </html>
   );

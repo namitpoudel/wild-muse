@@ -1,132 +1,162 @@
 import Link from "next/link";
 import { AlertTriangle, BarChart3, Plus, ShoppingCart } from "lucide-react";
+import { Suspense } from "react";
+import { SalesChart } from "@/components/admin/sales-chart";
+import { AdminHeader, AdminSkeleton, Card, Stat } from "@/components/admin/ui";
+import { OrderStatusBadge } from "@/components/account/order-status-badge";
 import { Badge } from "@/components/ui/badge";
 import { ButtonLink } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/empty-state";
-import { getProducts } from "@/lib/catalog/queries";
 import { formatPenceExact } from "@/lib/money";
+import { getDashboardStats } from "@/server/admin/stats";
+import { requirePermission } from "@/server/auth/session";
+import { db } from "@/server/db";
+import { formatOrderNumber } from "@/server/orders/format";
 
 export const metadata = { title: "Dashboard" };
 
-/**
- * Admin dashboard layout. Every KPI is computed from real data: with no orders yet,
- * revenue figures are genuinely £0.00. Low-stock is computed from (demo) inventory.
- */
-export default async function AdminDashboard() {
-  const products = await getProducts();
-  const lowStock = products
-    .flatMap((p) => p.variants.map((v) => ({ p, v })))
-    .filter(({ v }) => v.stock <= 2)
-    .sort((a, b) => a.v.stock - b.v.stock)
-    .slice(0, 8);
-  const orders: { totalPence: number }[] = [];
-  const revenue = orders.reduce((n, o) => n + o.totalPence, 0);
-  const kpis = [
-    { label: "Total sales", value: formatPenceExact(revenue) },
-    { label: "Today's revenue", value: formatPenceExact(0) },
-    { label: "This month", value: formatPenceExact(0) },
-    { label: "Average order value", value: orders.length ? formatPenceExact(revenue / orders.length) : "—" },
-    { label: "Total orders", value: "0" },
-    { label: "Pending", value: "0" },
-    { label: "Completed", value: "0" },
-    { label: "Cancelled", value: "0" },
-    { label: "Customers", value: "0" },
-  ];
+export default function AdminDashboard({ searchParams }: PageProps<"/admin">) {
   return (
-    <div className="mx-auto max-w-7xl space-y-8">
-      <p className="rounded-[2px] border border-mustard/50 bg-mustard/10 px-4 py-3 text-sm">
-        <strong>Design preview.</strong> Sign-in, role permissions and live data are connected in Stage 4. Products shown are the demo catalogue.
-      </p>
-      <div className="flex flex-wrap items-end justify-between gap-4">
-        <div>
-          <h1 className="font-display text-4xl">Dashboard</h1>
-          <p className="text-sm text-bark">Your store at a glance</p>
-        </div>
-        <div className="flex gap-2">
-          <ButtonLink href="/admin/orders" variant="outline" size="sm">
-            View orders
-          </ButtonLink>
-          <ButtonLink href="/admin/products/new" size="sm">
-            <Plus /> Add product
-          </ButtonLink>
-        </div>
-      </div>
+    <Suspense fallback={<AdminSkeleton />}>
+      <Dashboard searchParams={searchParams} />
+    </Suspense>
+  );
+}
 
-      <ul className="grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-5">
-        {kpis.map((k, i) => (
-          <li
-            key={k.label}
-            className={`rounded-[3px] border border-sand bg-white p-4 shadow-soft ${i === 0 ? "col-span-2 md:col-span-1 xl:row-span-2 xl:flex xl:flex-col xl:justify-center" : ""}`}
-          >
-            <p className="text-xs font-semibold uppercase tracking-[0.12em] text-bark">{k.label}</p>
-            <p className={`mt-1.5 font-display tabular-nums ${i === 0 ? "text-4xl" : "text-2xl"}`}>{k.value}</p>
-          </li>
-        ))}
-      </ul>
+async function Dashboard({ searchParams }: Pick<PageProps<"/admin">, "searchParams">) {
+  const user = await requirePermission("dashboard.view");
+  const [s, demoCount, sp] = await Promise.all([getDashboardStats(), db.product.count({ where: { isDemo: true, deletedAt: null } }), searchParams]);
+  return (
+    <div className="space-y-8">
+      {sp.denied && (
+        <p className="rounded-[2px] border border-danger/40 bg-danger/5 px-4 py-3 text-sm text-danger">
+          Your role doesn&apos;t have access to that section.
+        </p>
+      )}
+      {demoCount > 0 && (
+        <p className="rounded-[2px] border border-mustard/50 bg-mustard/10 px-4 py-3 text-sm">
+          <strong>{demoCount} demo products</strong> are in the catalogue. Replace them with your real products, then remove them in{" "}
+          <Link href="/admin/products?demo=1" className="font-semibold underline">
+            Products
+          </Link>
+          .
+        </p>
+      )}
+      <AdminHeader
+        title="Dashboard"
+        description={`Welcome back, ${user.name.split(" ")[0]}.`}
+        actions={
+          <>
+            <ButtonLink href="/admin/orders" variant="outline" size="sm">
+              View orders
+            </ButtonLink>
+            <ButtonLink href="/admin/products/new" size="sm">
+              <Plus /> Add product
+            </ButtonLink>
+          </>
+        }
+      />
+      <div className="grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-5">
+        <div className="col-span-2 md:col-span-1 xl:row-span-2 [&>div]:h-full">
+          <Stat big label="Total sales" value={formatPenceExact(s.totalSalesPence)} hint="Paid orders, net of refunds" />
+        </div>
+        <Stat label="Today's revenue" value={formatPenceExact(s.todayPence)} />
+        <Stat label="This month" value={formatPenceExact(s.monthPence)} />
+        <Stat label="Average order" value={s.totalOrders ? formatPenceExact(s.aovPence) : "—"} />
+        <Stat label="Total orders" value={s.totalOrders} />
+        <Stat label="To dispatch" value={s.pending} hint="Paid / preparing" />
+        <Stat label="Completed" value={s.completed} hint="Dispatched / delivered" />
+        <Stat label="Cancelled" value={s.cancelled} />
+        <Stat label="Customers" value={s.customers} />
+      </div>
 
       <div className="grid gap-6 xl:grid-cols-3">
-        <section className="rounded-[3px] border border-sand bg-white shadow-soft xl:col-span-2" aria-labelledby="sales-chart">
-          <h2 id="sales-chart" className="border-b border-sand px-5 py-4 font-display text-xl">
-            Sales — last 30 days
-          </h2>
-          <EmptyState icon={BarChart3} title="No sales yet">
-            Your revenue chart appears here as soon as the first paid order is confirmed by Stripe.
-          </EmptyState>
-        </section>
-        <section className="rounded-[3px] border border-sand bg-white shadow-soft" aria-labelledby="best">
-          <h2 id="best" className="border-b border-sand px-5 py-4 font-display text-xl">
-            Best-selling products
-          </h2>
-          <EmptyState icon={ShoppingCart} title="Waiting for orders">
-            Ranked by units sold from real orders.
-          </EmptyState>
-        </section>
+        <Card title="Revenue — last 30 days" className="xl:col-span-2">
+          {s.days.some((d) => d.totalPence > 0) ? (
+            <SalesChart days={s.days} />
+          ) : (
+            <EmptyState icon={BarChart3} title="No sales yet">
+              Your revenue chart appears here as soon as the first paid order is confirmed by Stripe.
+            </EmptyState>
+          )}
+        </Card>
+        <Card title="Best-selling products">
+          {s.best.length ? (
+            <ol className="space-y-3 text-sm">
+              {s.best.map((b, i) => (
+                <li key={b.productId} className="flex items-center justify-between gap-3">
+                  <Link href={`/admin/products/${b.productId}`} className="hover:underline">
+                    {i + 1}. {b.name}
+                  </Link>
+                  <span className="whitespace-nowrap text-bark">{b.units} sold</span>
+                </li>
+              ))}
+            </ol>
+          ) : (
+            <EmptyState icon={ShoppingCart} title="Waiting for orders">
+              Ranked by units sold in paid orders.
+            </EmptyState>
+          )}
+        </Card>
       </div>
 
-      <section className="rounded-[3px] border border-sand bg-white shadow-soft" aria-labelledby="low-stock">
-        <div className="flex items-center justify-between border-b border-sand px-5 py-4">
-          <h2 id="low-stock" className="flex items-center gap-2 font-display text-xl">
-            <AlertTriangle className="size-5 text-warning" aria-hidden /> Low stock
-          </h2>
-          <Link href="/admin/inventory" className="text-sm font-semibold underline underline-offset-4">
-            Manage inventory
-          </Link>
-        </div>
-        <div className="overflow-x-auto">
-          <table className="w-full min-w-[36rem] text-sm">
-            <thead>
-              <tr className="border-b border-sand text-left text-xs uppercase tracking-[0.1em] text-bark">
-                <th scope="col" className="px-5 py-3 font-semibold">
-                  Product
-                </th>
-                <th scope="col" className="px-5 py-3 font-semibold">
-                  SKU
-                </th>
-                <th scope="col" className="px-5 py-3 font-semibold">
-                  Variant
-                </th>
-                <th scope="col" className="px-5 py-3 text-right font-semibold">
-                  Available
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              {lowStock.map(({ p, v }) => (
-                <tr key={v.id} className="border-b border-sand/70 last:border-0 hover:bg-cream/50">
-                  <td className="px-5 py-3 font-medium">{p.name}</td>
-                  <td className="px-5 py-3 font-mono text-xs text-bark">{v.sku}</td>
-                  <td className="px-5 py-3">
-                    {v.colour} / {v.size}
-                  </td>
-                  <td className="px-5 py-3 text-right">
-                    <Badge tone={v.stock === 0 ? "danger" : "warning"}>{v.stock === 0 ? "Sold out" : `${v.stock} left`}</Badge>
-                  </td>
-                </tr>
+      <div className="grid gap-6 xl:grid-cols-2">
+        <Card
+          title={
+            <span className="flex items-center gap-2">
+              <AlertTriangle className="size-5 text-warning" aria-hidden /> Low stock
+            </span>
+          }
+          actions={
+            <Link href="/admin/inventory?low=1" className="text-sm font-semibold underline">
+              Manage
+            </Link>
+          }
+        >
+          {s.lowStock.length ? (
+            <ul className="divide-y divide-sand text-sm">
+              {s.lowStock.map((v) => (
+                <li key={v.id} className="flex items-center justify-between gap-3 py-2">
+                  <Link href={`/admin/products/${v.productId}`} className="hover:underline">
+                    {v.name}{" "}
+                    <span className="text-bark">
+                      · {v.colour} / {v.size}
+                    </span>
+                  </Link>
+                  <Badge tone={v.available === 0 ? "danger" : "warning"}>{v.available === 0 ? "Sold out" : `${v.available} left`}</Badge>
+                </li>
               ))}
-            </tbody>
-          </table>
-        </div>
-      </section>
+            </ul>
+          ) : (
+            <p className="text-sm text-bark">All variants are above their low-stock threshold.</p>
+          )}
+        </Card>
+        <Card
+          title="Recent orders"
+          actions={
+            <Link href="/admin/orders" className="text-sm font-semibold underline">
+              All orders
+            </Link>
+          }
+        >
+          {s.recent.length ? (
+            <ul className="divide-y divide-sand text-sm">
+              {s.recent.map((o) => (
+                <li key={o.id} className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1 py-2">
+                  <Link href={`/admin/orders/${o.id}`} className="font-semibold hover:underline">
+                    {formatOrderNumber(o.orderNumber)}
+                  </Link>
+                  <span className="min-w-0 flex-1 truncate text-bark">{o.email}</span>
+                  <OrderStatusBadge status={o.status} />
+                  <span className="w-20 text-right font-semibold">{formatPenceExact(o.totalPence)}</span>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className="text-sm text-bark">No orders yet.</p>
+          )}
+        </Card>
+      </div>
     </div>
   );
 }

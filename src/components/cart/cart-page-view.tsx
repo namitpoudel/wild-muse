@@ -4,7 +4,7 @@ import { ShoppingBag } from "lucide-react";
 import { ButtonLink } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/empty-state";
 import { Skeleton } from "@/components/ui/skeleton";
-import { siteConfig } from "@/config/site";
+import { useConfig } from "@/components/config-provider";
 import { formatPenceExact } from "@/lib/money";
 import { CartLineItem } from "./cart-line-item";
 import { FreeDeliveryMeter } from "./free-delivery-meter";
@@ -12,6 +12,7 @@ import { useStore } from "./store-provider";
 
 export function CartPageView() {
   const { lines, subtotalPence, itemCount, ready } = useStore();
+  const config = useConfig();
   if (!ready) {
     return (
       <div className="grid gap-10 lg:grid-cols-12" role="status" aria-label="Loading your bag">
@@ -30,8 +31,14 @@ export function CartPageView() {
       </EmptyState>
     );
   }
-  const threshold = siteConfig.commerce.freeDeliveryThresholdPence;
-  const deliveryLabel = subtotalPence >= threshold ? "Free" : `From ${formatPenceExact(siteConfig.commerce.standardDeliveryPence)}`;
+  const threshold = config.freeDeliveryThresholdPence;
+  const cheapest = Math.min(...config.shipping.map((m) => m.pricePence));
+  const deliveryLabel =
+    threshold !== null && subtotalPence >= threshold
+      ? "Free"
+      : Number.isFinite(cheapest)
+        ? `From ${formatPenceExact(cheapest)}`
+        : "Calculated at checkout";
   return (
     <div className="grid gap-10 lg:grid-cols-12">
       <div className="lg:col-span-8">

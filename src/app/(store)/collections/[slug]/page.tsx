@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { SimpleListingPage } from "@/components/listing/simple-listing-page";
-import { getCollection, getCollections, getProducts } from "@/lib/catalog/queries";
+import { getCollection, getCollections, getProducts } from "@/server/catalog/queries";
 
 export async function generateStaticParams() {
   return (await getCollections()).map((c) => ({ slug: c.slug }));

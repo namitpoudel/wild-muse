@@ -1,143 +1,182 @@
 "use client";
 
-import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
+import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { toast } from "sonner";
-import type { MediaAsset } from "@/lib/catalog/types";
+import { addToCartAction, getCartAction, updateCartLineAction } from "@/app/actions/cart";
+import { getWishlistAction, mergeWishlistAction, toggleWishlistAction } from "@/app/actions/wishlist";
+import type { CartLineView, CartView } from "@/server/cart/cart";
 
 /**
- * Client-side cart & wishlist state.
- *
- * Stage 2/3: persisted to localStorage so the UI is fully interactive.
- * Stage 4: becomes a thin cache over the server cart (`Cart`/`CartItem` tables),
- * which re-prices every line and validates stock. Prices held here are for
- * DISPLAY ONLY and are never trusted at checkout.
+ * Client state for the bag and wishlist. The SERVER is the source of truth:
+ * every change goes through a server action that re-reads prices and stock, and the
+ * returned cart replaces local state. Quantity changes are applied optimistically.
+ * Guests' wishlists live in this browser until they sign in, then merge into the account.
  */
-export interface CartLine {
-  variantId: string;
-  productSlug: string;
-  name: string;
-  size: string;
-  colour: string;
-  unitPricePence: number;
-  compareAtPence?: number;
-  image: MediaAsset;
-  quantity: number;
-  /** Stock known when the item was added; re-checked on the server at checkout. */
-  maxQuantity: number;
-}
+export type CartLine = CartLineView;
 
 interface StoreState {
   lines: CartLine[];
   itemCount: number;
   subtotalPence: number;
+  couponCode: string | null;
   ready: boolean;
+  signedIn: boolean;
+  userName: string | null;
   cartOpen: boolean;
   setCartOpen: (open: boolean) => void;
-  addToCart: (line: Omit<CartLine, "quantity">, quantity: number, opts?: { openDrawer?: boolean }) => void;
+  addToCart: (variantId: string, quantity: number, meta: { name: string; label: string }, opts?: { openDrawer?: boolean }) => Promise<boolean>;
   updateQuantity: (variantId: string, quantity: number) => void;
   removeLine: (variantId: string) => void;
-  clearCart: () => void;
+  setCart: (cart: CartView) => void;
+  refresh: () => Promise<void>;
   wishlist: string[];
   toggleWishlist: (slug: string, name: string) => void;
   isWishlisted: (slug: string) => boolean;
 }
 
 const StoreContext = createContext<StoreState | null>(null);
-const CART_KEY = "wm.cart.v1";
 const WISH_KEY = "wm.wishlist.v1";
+const EMPTY: CartView = { lines: [], itemCount: 0, subtotalPence: 0, couponCode: null };
 
-function readJson<T>(key: string, fallback: T): T {
+function readLocalWishlist(): string[] {
   try {
-    const raw = window.localStorage.getItem(key);
-    return raw ? (JSON.parse(raw) as T) : fallback;
+    const v = JSON.parse(localStorage.getItem(WISH_KEY) ?? "[]");
+    return Array.isArray(v) ? v.filter((x) => typeof x === "string") : [];
   } catch {
-    return fallback;
+    return [];
   }
 }
-function writeJson(key: string, value: unknown) {
+function writeLocalWishlist(v: string[]) {
   try {
-    window.localStorage.setItem(key, JSON.stringify(value));
-  } catch {
-    /* storage unavailable (private mode) — cart still works for this session */
-  }
+    localStorage.setItem(WISH_KEY, JSON.stringify(v));
+  } catch {}
 }
 
 export function StoreProvider({ children }: { children: ReactNode }) {
-  const [lines, setLines] = useState<CartLine[]>([]);
+  const [cart, setCart] = useState<CartView>(EMPTY);
   const [wishlist, setWishlist] = useState<string[]>([]);
+  const [signedIn, setSignedIn] = useState(false);
+  const [userName, setUserName] = useState<string | null>(null);
   const [ready, setReady] = useState(false);
   const [cartOpen, setCartOpen] = useState(false);
+  const pending = useRef<Record<string, number>>({});
 
-  useEffect(() => {
-    // Hydrate from storage after mount to avoid server/client markup mismatch.
-    // eslint-disable-next-line react-hooks/set-state-in-effect -- one-time hydration from browser storage
-    setLines(readJson<CartLine[]>(CART_KEY, []));
-    setWishlist(readJson<string[]>(WISH_KEY, []));
-    setReady(true);
+  const refresh = useCallback(async () => {
+    try {
+      const [c, w] = await Promise.all([getCartAction(), getWishlistAction()]);
+      setCart(c);
+      setSignedIn(w.signedIn);
+      setUserName(w.name);
+      if (w.signedIn) {
+        const local = readLocalWishlist();
+        if (local.length) {
+          setWishlist(await mergeWishlistAction(local));
+          writeLocalWishlist([]);
+        } else setWishlist(w.slugs);
+      } else setWishlist(readLocalWishlist());
+    } catch (e) {
+      console.error("Could not load bag", e);
+    } finally {
+      setReady(true);
+    }
   }, []);
 
   useEffect(() => {
-    if (ready) writeJson(CART_KEY, lines);
-  }, [lines, ready]);
-  useEffect(() => {
-    if (ready) writeJson(WISH_KEY, wishlist);
-  }, [wishlist, ready]);
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- initial load of server-held bag/wishlist
+    void refresh();
+  }, [refresh]);
 
-  const addToCart = useCallback<StoreState["addToCart"]>(
-    (line, quantity, opts) => {
-      const existing = lines.find((l) => l.variantId === line.variantId);
-      const current = existing?.quantity ?? 0;
-      const next = Math.min(line.maxQuantity, current + quantity);
-      if (next === current) {
-        toast.warning(`You already have all ${line.maxQuantity} available in your bag.`);
-        return;
-      }
-      setLines(
-        existing
-          ? lines.map((l) => (l.variantId === line.variantId ? { ...l, ...line, quantity: next } : l))
-          : [...lines, { ...line, quantity: next }],
-      );
-      if (next < current + quantity) toast.warning(`Only ${line.maxQuantity} available — we've added the maximum.`);
-      else toast.success(`Added to your bag`, { description: `${line.name} · ${line.colour} · ${line.size}` });
-      if (opts?.openDrawer !== false) setCartOpen(true);
+  const addToCart = useCallback<StoreState["addToCart"]>(async (variantId, quantity, meta, opts) => {
+    const res = await addToCartAction({ variantId, quantity });
+    if (!res.ok) {
+      toast.error(res.error);
+      return false;
+    }
+    setCart(res.data.cart);
+    if (res.data.capped) toast.warning("We've added the maximum available.");
+    else toast.success("Added to your bag", { description: `${meta.name} · ${meta.label}` });
+    if (opts?.openDrawer !== false) setCartOpen(true);
+    return true;
+  }, []);
+
+  const sendQuantity = useCallback(async (variantId: string, quantity: number) => {
+    const id = (pending.current[variantId] ?? 0) + 1;
+    pending.current[variantId] = id;
+    const res = await updateCartLineAction({ variantId, quantity });
+    if (pending.current[variantId] !== id) return; // a newer change superseded this one
+    if (res.ok) setCart(res.data);
+    else {
+      toast.error(res.error);
+      setCart(await getCartAction());
+    }
+  }, []);
+
+  const updateQuantity = useCallback(
+    (variantId: string, quantity: number) => {
+      setCart((c) => {
+        const lines = c.lines.map((l) => (l.variantId === variantId ? { ...l, quantity: Math.max(1, Math.min(l.maxQuantity || 1, quantity)) } : l));
+        return {
+          ...c,
+          lines,
+          itemCount: lines.reduce((n, l) => n + l.quantity, 0),
+          subtotalPence: lines.filter((l) => !l.issue).reduce((n, l) => n + l.quantity * l.unitPricePence, 0),
+        };
+      });
+      void sendQuantity(variantId, quantity);
     },
-    [lines],
+    [sendQuantity],
   );
 
-  const updateQuantity = useCallback((variantId: string, quantity: number) => {
-    setLines((prev) => prev.map((l) => (l.variantId === variantId ? { ...l, quantity: Math.max(1, Math.min(l.maxQuantity, quantity)) } : l)));
-  }, []);
-
-  const removeLine = useCallback((variantId: string) => {
-    setLines((prev) => prev.filter((l) => l.variantId !== variantId));
-  }, []);
+  const removeLine = useCallback(
+    (variantId: string) => {
+      setCart((c) => {
+        const lines = c.lines.filter((l) => l.variantId !== variantId);
+        return {
+          ...c,
+          lines,
+          itemCount: lines.reduce((n, l) => n + l.quantity, 0),
+          subtotalPence: lines.filter((l) => !l.issue).reduce((n, l) => n + l.quantity * l.unitPricePence, 0),
+        };
+      });
+      void sendQuantity(variantId, 0);
+    },
+    [sendQuantity],
+  );
 
   const toggleWishlist = useCallback(
     (slug: string, name: string) => {
       const has = wishlist.includes(slug);
-      setWishlist(has ? wishlist.filter((s) => s !== slug) : [...wishlist, slug]);
-      toast(has ? `Removed from wishlist` : `Saved to wishlist`, { description: name });
+      const next = has ? wishlist.filter((s) => s !== slug) : [slug, ...wishlist];
+      setWishlist(next);
+      toast(has ? "Removed from wishlist" : "Saved to wishlist", { description: name });
+      if (signedIn) {
+        void toggleWishlistAction(slug).then((r) => r.ok && setWishlist(r.slugs));
+      } else writeLocalWishlist(next);
     },
-    [wishlist],
+    [wishlist, signedIn],
   );
 
   const value = useMemo<StoreState>(
     () => ({
-      lines,
-      itemCount: lines.reduce((n, l) => n + l.quantity, 0),
-      subtotalPence: lines.reduce((n, l) => n + l.quantity * l.unitPricePence, 0),
+      lines: cart.lines,
+      itemCount: cart.itemCount,
+      subtotalPence: cart.subtotalPence,
+      couponCode: cart.couponCode,
       ready,
+      signedIn,
+      userName,
       cartOpen,
       setCartOpen,
       addToCart,
       updateQuantity,
       removeLine,
-      clearCart: () => setLines([]),
+      setCart,
+      refresh,
       wishlist,
       toggleWishlist,
       isWishlisted: (slug) => wishlist.includes(slug),
     }),
-    [lines, ready, cartOpen, addToCart, updateQuantity, removeLine, wishlist, toggleWishlist],
+    [cart, ready, signedIn, userName, cartOpen, addToCart, updateQuantity, removeLine, refresh, wishlist, toggleWishlist],
   );
 
   return <StoreContext.Provider value={value}>{children}</StoreContext.Provider>;

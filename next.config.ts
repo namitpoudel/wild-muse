@@ -1,9 +1,11 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  /* config options here */
+  // Cache Components: pages are prerendered and cached; data uses `use cache` + tags.
   cacheComponents: true,
-  partialPrefetching: true,
+  // Partial Prefetching is intentionally OFF: dynamic routes await `params` at the top level
+  // ("blocking" ISR), so unknown URLs return a real 404 and edited pages regenerate cleanly.
+  partialPrefetching: false,
   turbopack: {
     rules: {
       "*.css": {

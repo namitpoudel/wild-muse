@@ -11,7 +11,13 @@ export function CartLineItem({ line, onNavigate }: { line: CartLine; onNavigate?
   const { updateQuantity, removeLine } = useStore();
   return (
     <li className="flex gap-4 py-5">
-      <Link href={`/products/${line.productSlug}`} onClick={onNavigate} className="block w-22 shrink-0 overflow-hidden rounded-[2px] bg-sand sm:w-26">
+      <Link
+        href={`/products/${line.productSlug}`}
+        onClick={onNavigate}
+        tabIndex={-1}
+        aria-hidden
+        className="block w-22 shrink-0 overflow-hidden rounded-[2px] bg-sand sm:w-26"
+      >
         <div className="aspect-[4/5]">
           <MediaImage media={line.image} />
         </div>
@@ -28,12 +34,18 @@ export function CartLineItem({ line, onNavigate }: { line: CartLine; onNavigate?
           </div>
           <Price pricePence={line.unitPricePence * line.quantity} className="shrink-0 justify-end text-right" showSaving={false} />
         </div>
-        {line.quantity >= line.maxQuantity && <p className="mt-1 text-xs font-medium text-warning">Only {line.maxQuantity} available</p>}
+        {line.issue ? (
+          <p className="mt-1 text-xs font-semibold text-danger" role="status">
+            {line.issue} — please remove or reduce before checkout
+          </p>
+        ) : (
+          line.quantity >= line.maxQuantity && <p className="mt-1 text-xs font-medium text-warning">Only {line.maxQuantity} available</p>
+        )}
         <div className="mt-auto flex items-center justify-between pt-3">
           <QuantitySelector
             size="sm"
             value={line.quantity}
-            max={line.maxQuantity}
+            max={Math.max(1, line.maxQuantity)}
             onChange={(n) => updateQuantity(line.variantId, n)}
             label={`Quantity for ${line.name}`}
           />

@@ -61,13 +61,17 @@ export interface Product {
   bestsellerRank?: number;
   /** ISO date — used for "New arrivals" ordering. */
   publishedAt: string;
+  /** Among the most recently published products (drives the "New" badge). */
+  isNew?: boolean;
   /** Real review aggregate only. Never seeded with invented ratings. */
   rating: RatingSummary;
   images: MediaAsset[];
+  categoryName?: string;
   sizeGuide?: "womens-clothing" | "mens-clothing" | "kids-clothing" | "one-size";
 }
 
 export interface Category {
+  id?: string;
   slug: string;
   name: string;
   department: Department;
@@ -76,6 +80,8 @@ export interface Category {
 }
 
 export interface Collection {
+  id?: string;
+  featured?: boolean;
   slug: string;
   name: string;
   tagline: string;

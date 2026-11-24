@@ -1,6 +1,6 @@
 import { Artwork } from "@/components/brand/artwork";
 import { InstagramIcon } from "@/components/brand/social-icons";
-import { siteConfig } from "@/config/site";
+import { getSettings } from "@/server/settings";
 import type { ArtworkKind, ArtworkTone } from "@/lib/catalog/types";
 
 /**
@@ -16,7 +16,8 @@ const tiles: [ArtworkKind, ArtworkTone][] = [
   ["trousers", "cream"],
 ];
 
-export function SocialGallery() {
+export async function SocialGallery() {
+  const { social } = await getSettings();
   return (
     <section className="py-16 md:py-24" aria-labelledby="social-heading">
       <div className="container-page mb-8 text-center">
@@ -33,7 +34,7 @@ export function SocialGallery() {
           <li key={i} className="group relative aspect-square overflow-hidden">
             <Artwork kind={kind} tone={tone} label="Styled outfit (placeholder for customer photo)" band={false} />
             <a
-              href={siteConfig.social.instagram}
+              href={social.instagram}
               target="_blank"
               rel="noopener noreferrer"
               className="absolute inset-0 grid place-items-center bg-chocolate/0 text-linen opacity-0 transition-all group-hover:bg-chocolate/50 group-hover:opacity-100 focus-visible:bg-chocolate/50 focus-visible:opacity-100"

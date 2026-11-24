@@ -6,11 +6,12 @@ import { ChevronDown, Heart, Menu, Search, User } from "lucide-react";
 import { useState } from "react";
 import { Dialog, DialogTrigger, SheetContent } from "@/components/ui/dialog";
 import type { NavItem } from "@/config/navigation";
-import { siteConfig } from "@/config/site";
+import { useConfig } from "@/components/config-provider";
 import { cn } from "@/lib/utils";
 
 export function MobileNav({ items }: { items: NavItem[] }) {
   const [open, setOpen] = useState(false);
+  const config = useConfig();
   const close = () => setOpen(false);
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -77,8 +78,8 @@ export function MobileNav({ items }: { items: NavItem[] }) {
           </div>
           <p className="px-5 pb-8 text-xs text-bark">
             Need help?{" "}
-            <a className="underline" href={`mailto:${siteConfig.contact.email}`}>
-              {siteConfig.contact.email}
+            <a className="underline" href={`mailto:${config.contactEmail}`}>
+              {config.contactEmail}
             </a>
           </p>
         </nav>

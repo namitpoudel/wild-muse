@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { MediaImage } from "@/components/brand/artwork";
 import { ListingHeader } from "@/components/listing/listing-header";
-import { getCollections, getProducts } from "@/lib/catalog/queries";
+import { getCollections, getProducts } from "@/server/catalog/queries";
 
 export const metadata: Metadata = {
   title: "Collections",

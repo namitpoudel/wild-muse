@@ -1,26 +1,36 @@
 import { siteConfig } from "@/config/site";
+
+/** Business details needed for structured data (from admin settings). */
+export interface SeoBrand {
+  name: string;
+  slogan: string;
+  email: string;
+  social: Record<string, string>;
+  standardShippingPence: number;
+  returnDays: number;
+}
 import type { Product } from "@/lib/catalog/types";
 
 export const absoluteUrl = (path: string) => new URL(path, siteConfig.url).toString();
 
-export function organizationJsonLd() {
+export function organizationJsonLd(b: SeoBrand) {
   return {
     "@context": "https://schema.org",
     "@type": "Organization",
-    name: siteConfig.name,
+    name: b.name,
     url: siteConfig.url,
     logo: absoluteUrl("/icon.svg"),
-    slogan: siteConfig.slogan,
-    email: siteConfig.contact.email,
-    sameAs: Object.values(siteConfig.social),
+    slogan: b.slogan,
+    email: b.email,
+    sameAs: Object.values(b.social),
   };
 }
 
-export function websiteJsonLd() {
+export function websiteJsonLd(b: Pick<SeoBrand, "name">) {
   return {
     "@context": "https://schema.org",
     "@type": "WebSite",
-    name: siteConfig.name,
+    name: b.name,
     url: siteConfig.url,
     potentialAction: {
       "@type": "SearchAction",
@@ -47,7 +57,7 @@ export function breadcrumbJsonLd(items: { label: string; href?: string }[]) {
  * Product structured data. Ratings are included ONLY when real reviews exist.
  * Image URLs are added once real photography is uploaded (placeholders are SVG components).
  */
-export function productJsonLd(p: Product) {
+export function productJsonLd(p: Product, b: SeoBrand) {
   const url = absoluteUrl(`/products/${p.slug}`);
   const images = p.images.map((i) => i.src).filter(Boolean);
   return {
@@ -58,7 +68,7 @@ export function productJsonLd(p: Product) {
     url,
     productGroupID: p.id,
     ...(images.length ? { image: images } : {}),
-    brand: { "@type": "Brand", name: siteConfig.name },
+    brand: { "@type": "Brand", name: b.name },
     material: p.fibreComposition,
     countryOfOrigin: p.countryOfOrigin,
     variesBy: ["https://schema.org/size", "https://schema.org/color"],
@@ -78,13 +88,13 @@ export function productJsonLd(p: Product) {
         shippingDetails: {
           "@type": "OfferShippingDetails",
           shippingDestination: { "@type": "DefinedRegion", addressCountry: "GB" },
-          shippingRate: { "@type": "MonetaryAmount", currency: "GBP", value: (siteConfig.commerce.standardDeliveryPence / 100).toFixed(2) },
+          shippingRate: { "@type": "MonetaryAmount", currency: "GBP", value: (b.standardShippingPence / 100).toFixed(2) },
         },
         hasMerchantReturnPolicy: {
           "@type": "MerchantReturnPolicy",
           applicableCountry: "GB",
           returnPolicyCategory: "https://schema.org/MerchantReturnFiniteReturnWindow",
-          merchantReturnDays: siteConfig.commerce.returnDays,
+          merchantReturnDays: b.returnDays,
         },
       },
     })),

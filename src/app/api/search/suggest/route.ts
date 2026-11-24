@@ -1,5 +1,5 @@
 import type { NextRequest } from "next/server";
-import { getSuggestions } from "@/lib/catalog/search";
+import { getSuggestions } from "@/server/catalog/search";
 
 /**
  * GET /api/search/suggest?q=… — live search suggestions.

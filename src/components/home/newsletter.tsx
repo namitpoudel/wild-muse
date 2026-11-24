@@ -1,11 +1,12 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useState, useTransition } from "react";
+import { subscribeAction } from "@/app/actions/newsletter";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/field";
-import { siteConfig } from "@/config/site";
+import { useConfig } from "@/components/config-provider";
 
 /**
  * Newsletter sign-up (UK GDPR / PECR): consent box is unticked by default, purpose is
@@ -16,16 +17,23 @@ export function Newsletter() {
   const [email, setEmail] = useState("");
   const [consent, setConsent] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [done, setDone] = useState(false);
+  const [pending, startTransition] = useTransition();
 
   function onSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return setError("Please enter a valid email address.");
     if (!consent) return setError("Please tick the box to confirm you'd like to receive our emails.");
     setError(null);
-    toast.info("Newsletter sign-up is connected to the database in Stage 4 — nothing was saved yet.");
+    startTransition(async () => {
+      const res = await subscribeAction({ email, consent, source: "homepage" });
+      if (!res.ok) return setError(res.error);
+      setDone(true);
+      toast.success(res.data.already ? "You're already subscribed — thank you!" : "Nearly there! Check your inbox to confirm.");
+    });
   }
 
-  const pct = siteConfig.commerce.newsletterDiscountPercent;
+  const pct = useConfig().newsletterDiscountPercent;
   return (
     <section id="newsletter" className="texture-grain bg-sand" aria-labelledby="newsletter-heading">
       <div className="container-page grid gap-8 py-16 md:py-20 lg:grid-cols-2 lg:items-center">
@@ -53,8 +61,8 @@ export function Newsletter() {
               placeholder="Your email address"
               className="h-13 flex-1 rounded-[2px] border border-sand-deep bg-linen px-4 text-chocolate placeholder:text-bark/80 focus:border-chocolate focus:outline-none"
             />
-            <Button type="submit" variant="dark" size="lg">
-              Subscribe
+            <Button type="submit" variant="dark" size="lg" disabled={pending || done}>
+              {done ? "Check your inbox" : pending ? "Subscribing…" : "Subscribe"}
             </Button>
           </div>
           <Checkbox

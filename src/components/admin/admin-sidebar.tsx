@@ -1,4 +1,7 @@
+"use client";
+
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import {
   BarChart3,
   Boxes,
@@ -56,8 +59,8 @@ export const adminNav = [
   {
     group: "Website",
     items: [
-      { href: "/admin/content", label: "Homepage & pages", Icon: ImageIcon },
-      { href: "/admin/announcements", label: "Announcements", Icon: Megaphone },
+      { href: "/admin/content", label: "Pages & policies", Icon: ImageIcon },
+      { href: "/admin/content/homepage", label: "Homepage & announcements", Icon: Megaphone },
     ],
   },
   {
@@ -70,7 +73,16 @@ export const adminNav = [
   },
 ];
 
+/** The nav item whose href is the longest prefix of the current path is the active one. */
+function useActive() {
+  const path = usePathname();
+  const all = adminNav.flatMap((g) => g.items.map((i) => i.href));
+  const best = all.filter((h) => path === h || path.startsWith(`${h}/`)).sort((a, b) => b.length - a.length)[0];
+  return (href: string) => href === best;
+}
+
 export function AdminSidebar() {
+  const active = useActive();
   return (
     <aside className="hidden w-64 shrink-0 flex-col bg-chocolate text-sand lg:flex">
       <Link href="/admin" className="flex items-center gap-2.5 px-5 py-5 text-linen">
@@ -86,7 +98,8 @@ export function AdminSidebar() {
                 <li key={href}>
                   <Link
                     href={href}
-                    aria-current={href === "/admin" ? "page" : undefined}
+                    prefetch={false}
+                    aria-current={active(href) ? "page" : undefined}
                     className="flex items-center gap-3 rounded-[2px] px-2 py-2 text-sm hover:bg-white/8 hover:text-linen aria-[current=page]:bg-white/12 aria-[current=page]:text-linen"
                   >
                     <Icon className="size-4" aria-hidden /> {label}
@@ -98,5 +111,30 @@ export function AdminSidebar() {
         ))}
       </nav>
     </aside>
+  );
+}
+
+/** Compact navigation for phones/tablets (the sidebar is desktop-only). */
+export function AdminMobileNav() {
+  const active = useActive();
+  return (
+    <nav aria-label="Admin sections" className="border-b border-sand bg-linen lg:hidden">
+      <ul className="flex gap-1 overflow-x-auto px-3 py-2 scrollbar-none">
+        {adminNav
+          .flatMap((g) => g.items)
+          .map(({ href, label }) => (
+            <li key={href}>
+              <Link
+                href={href}
+                prefetch={false}
+                aria-current={active(href) ? "page" : undefined}
+                className="block whitespace-nowrap rounded-full px-3 py-1.5 text-xs font-semibold aria-[current=page]:bg-chocolate aria-[current=page]:text-linen"
+              >
+                {label}
+              </Link>
+            </li>
+          ))}
+      </ul>
+    </nav>
   );
 }

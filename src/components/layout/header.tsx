@@ -1,5 +1,6 @@
 import { Logo } from "@/components/brand/logo";
-import { mainNav } from "@/config/navigation";
+import { buildMainNav } from "@/config/navigation";
+import { getCategories } from "@/server/catalog/queries";
 import { DesktopNav } from "./desktop-nav";
 import { HeaderActions } from "./header-actions";
 import { MobileNav } from "./mobile-nav";
@@ -10,7 +11,8 @@ import { MobileNav } from "./mobile-nav";
  * The <header> is the positioning context for the full-width mega-menu panels,
  * so inner wrappers must not be `position: relative`.
  */
-export function Header() {
+export async function Header() {
+  const mainNav = buildMainNav(await getCategories());
   return (
     <header className="sticky top-0 z-40 border-b border-sand bg-linen/95 backdrop-blur supports-[backdrop-filter]:bg-linen/90">
       <div className="container-page grid h-16 grid-cols-[1fr_auto_1fr] items-center gap-2 lg:h-[4.25rem]">

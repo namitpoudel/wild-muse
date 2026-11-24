@@ -2,3 +2,6 @@ node_modules
 .next
 src/app/fonts
 package-lock.json
+src/generated
+public/uploads
+storage

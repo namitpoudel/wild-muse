@@ -8,8 +8,11 @@ import { ReviewsSection } from "@/components/home/reviews-section";
 import { SocialGallery } from "@/components/home/social-gallery";
 import { ValueStrip } from "@/components/home/value-strip";
 import { JsonLd } from "@/components/seo/json-ld";
-import { getBestSellers, getCollections, getNewArrivals } from "@/lib/catalog/queries";
+import { getBestSellers, getCollections, getNewArrivals } from "@/server/catalog/queries";
 import { organizationJsonLd, websiteJsonLd } from "@/lib/seo";
+import { getSeoBrand } from "@/server/seo-brand";
+import { getLatestApprovedReviews } from "@/server/reviews";
+import { getSettings } from "@/server/settings";
 
 export const metadata = { alternates: { canonical: "/" } };
 
@@ -18,25 +21,35 @@ export const metadata = { alternates: { canonical: "/" } };
  * comes from the HomepageSection table (admin → Content → Homepage).
  */
 export default async function HomePage() {
-  const [bestSellers, newArrivals, collections] = await Promise.all([getBestSellers(8), getNewArrivals(8), getCollections()]);
+  const [bestSellers, newArrivals, collections, brand, settings] = await Promise.all([
+    getBestSellers(8),
+    getNewArrivals(8),
+    getCollections(),
+    getSeoBrand(),
+    getSettings(),
+  ]);
+  const latestReviews = await getLatestApprovedReviews(3);
+  const hero = settings.hero;
   return (
     <>
-      <JsonLd data={organizationJsonLd()} />
-      <JsonLd data={websiteJsonLd()} />
+      <JsonLd data={organizationJsonLd(brand)} />
+      <JsonLd data={websiteJsonLd(brand)} />
       <Hero
         content={{
-          eyebrow: "Find your wild. Wear your soul.",
-          heading: "Wear your wild side.",
-          subheading: "Discover handcrafted bohemian fashion, inspired by Nepal and made for free spirits.",
-          ctas: [
-            { label: "Shop Women", href: "/women" },
-            { label: "Shop Men", href: "/men" },
-            { label: "Explore Handmade", href: "/handmade-in-nepal" },
-          ],
+          eyebrow: hero.eyebrow,
+          heading: hero.heading,
+          subheading: hero.subheading,
+          ctas: hero.ctas,
+          primaryImage: hero.primaryImageUrl
+            ? { src: hero.primaryImageUrl, alt: "Wild Muse hero image", kind: "landscape", tone: "terracotta" }
+            : undefined,
+          secondaryImage: hero.secondaryImageUrl
+            ? { src: hero.secondaryImageUrl, alt: "Wild Muse model wearing handmade clothing", kind: "dress", tone: "sand" }
+            : undefined,
         }}
       />
       <ValueStrip />
-      <CollectionGrid collections={collections} />
+      <CollectionGrid collections={collections.filter((c) => c.featured).slice(0, 7)} />
       <ProductRail
         id="bestsellers-heading"
         eyebrow="Best sellers"
@@ -48,7 +61,7 @@ export default async function HomePage() {
       <ProductRail id="new-heading" eyebrow="Just landed" title="New arrivals" href="/new-arrivals" products={newArrivals} />
       <HandmadeStory />
       <CategoryTiles />
-      <ReviewsSection reviews={[]} />
+      <ReviewsSection reviews={latestReviews} />
       <SocialGallery />
       <Newsletter />
     </>

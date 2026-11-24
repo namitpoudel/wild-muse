@@ -6,9 +6,10 @@ import { ProductListing } from "@/components/listing/product-listing";
 import { ProductRail } from "@/components/home/product-rail";
 import { EmptyState } from "@/components/ui/empty-state";
 import { ProductGridSkeleton, Skeleton } from "@/components/ui/skeleton";
-import { POPULAR_SEARCHES } from "@/config/search";
-import { getBestSellers, getFacets } from "@/lib/catalog/queries";
-import { searchProducts } from "@/lib/catalog/search";
+import { getBestSellers } from "@/server/catalog/queries";
+import { getFacets } from "@/lib/catalog/product-utils";
+import { searchProducts } from "@/server/catalog/search";
+import { getSettings } from "@/server/settings";
 
 export const metadata: Metadata = { title: "Search", robots: { index: false, follow: true } };
 
@@ -30,7 +31,8 @@ export default function SearchPage({ searchParams }: PageProps<"/search">) {
 async function Results({ searchParams }: Pick<PageProps<"/search">, "searchParams">) {
   const raw = (await searchParams).q;
   const q = (Array.isArray(raw) ? raw[0] : (raw ?? "")).slice(0, 80).trim();
-  const results = q ? await searchProducts(q) : [];
+  const [results, settings] = await Promise.all([q ? searchProducts(q) : Promise.resolve([]), getSettings()]);
+  const POPULAR_SEARCHES = settings.popularSearches;
 
   return (
     <>

@@ -19,20 +19,7 @@ export function QuickAdd({ product }: { product: Product }) {
 
   const add = (variantId: string) => {
     const v = variants.find((x) => x.id === variantId)!;
-    addToCart(
-      {
-        variantId: v.id,
-        productSlug: product.slug,
-        name: product.name,
-        size: v.size,
-        colour: v.colour,
-        unitPricePence: product.pricePence,
-        compareAtPence: product.compareAtPricePence,
-        image: product.images[0],
-        maxQuantity: v.stock,
-      },
-      1,
-    );
+    void addToCart(v.id, 1, { name: product.name, label: `${v.colour} · ${v.size}` });
     setOpen(false);
   };
 

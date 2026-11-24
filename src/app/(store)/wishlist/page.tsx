@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { WishlistView } from "@/components/product/wishlist-view";
-import { getProducts } from "@/lib/catalog/queries";
+import { getProducts } from "@/server/catalog/queries";
 
 export const metadata: Metadata = { title: "Wishlist", robots: { index: false } };
 

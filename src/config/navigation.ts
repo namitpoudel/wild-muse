@@ -3,7 +3,7 @@
  * Stage 4 admin edits this via NavigationMenu/NavigationItem tables.
  */
 import { groupCategories } from "@/lib/catalog/categories";
-import type { ArtworkKind, ArtworkTone, Department } from "@/lib/catalog/types";
+import type { ArtworkKind, ArtworkTone, Category, Department } from "@/lib/catalog/types";
 
 export interface NavLink {
   label: string;
@@ -21,11 +21,11 @@ export interface NavItem {
   highlight?: boolean;
 }
 
-function deptMenu(dept: Department, label: string, feature: NavItem["feature"]): NavItem {
+function deptMenu(categories: Category[], dept: Department, label: string, feature: NavItem["feature"]): NavItem {
   return {
     label,
     href: `/${dept}`,
-    groups: groupCategories(dept).map((g) => ({
+    groups: groupCategories(categories, dept).map((g) => ({
       name: g.name,
       links: g.items.map((c) => ({ label: c.name, href: `/${dept}/${c.slug}` })),
     })),
@@ -33,30 +33,31 @@ function deptMenu(dept: Department, label: string, feature: NavItem["feature"]):
   };
 }
 
-export const mainNav: NavItem[] = [
+/** Main navigation, built from the live category tree. */
+export const buildMainNav = (categories: Category[]): NavItem[] => [
   { label: "New Arrivals", href: "/new-arrivals" },
-  deptMenu("women", "Women", {
+  deptMenu(categories, "women", "Women", {
     title: "The Bohemian Edit",
     href: "/collections/the-bohemian-edit",
     kind: "dress",
     tone: "terracotta",
     caption: "Dhaka trims, tiered maxis and hand embroidery",
   }),
-  deptMenu("men", "Men", {
+  deptMenu(categories, "men", "Men", {
     title: "Himalayan Knits",
     href: "/collections/himalayan-heritage",
     kind: "knit",
     tone: "olive",
     caption: "Hand-knitted wool for colder days",
   }),
-  deptMenu("kids", "Kids", {
+  deptMenu(categories, "kids", "Kids", {
     title: "Little Wanderers",
     href: "/kids",
     kind: "hat",
     tone: "mustard",
     caption: "Soft cotton and felted wool",
   }),
-  deptMenu("accessories", "Jewellery & Accessories", {
+  deptMenu(categories, "accessories", "Jewellery & Accessories", {
     title: "Handmade Treasures",
     href: "/collections/handmade-treasures",
     kind: "necklace",

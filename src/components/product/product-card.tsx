@@ -3,7 +3,7 @@ import { MediaImage } from "@/components/brand/artwork";
 import { Badge } from "@/components/ui/badge";
 import { Price } from "@/components/ui/price";
 import { StarRating } from "@/components/ui/star-rating";
-import { isNewArrival, isOnSale, sizeRangeLabel } from "@/lib/catalog/queries";
+import { isNewArrival, isOnSale, sizeRangeLabel } from "@/lib/catalog/product-utils";
 import type { Product } from "@/lib/catalog/types";
 import { discountPercent } from "@/lib/money";
 import { cn } from "@/lib/utils";

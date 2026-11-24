@@ -4,22 +4,25 @@ import { notFound } from "next/navigation";
 import { Artwork } from "@/components/brand/artwork";
 import { ContentRenderer } from "@/components/content/content-renderer";
 import { Breadcrumbs } from "@/components/ui/breadcrumbs";
-import { getHandmadePage, handmadePages } from "@/content/handmade";
+import { getHandmadePage, getHandmadePages } from "@/server/content/pages";
+import { getPublicArtisans } from "@/server/artisans";
 
-export function generateStaticParams() {
-  return handmadePages.map((p) => ({ slug: p.slug }));
+export async function generateStaticParams() {
+  const pages = await getHandmadePages().catch(() => []);
+  return pages.length ? pages.map((p) => ({ slug: p.slug })) : [{ slug: "our-nepal-story" }];
 }
 
 export async function generateMetadata({ params }: PageProps<"/handmade-in-nepal/[slug]">): Promise<Metadata> {
-  const page = getHandmadePage((await params).slug);
+  const page = await getHandmadePage((await params).slug);
   if (!page) return {};
   return { title: page.title, description: page.description, alternates: { canonical: `/handmade-in-nepal/${page.slug}` } };
 }
 
 export default async function HandmadeStoryPage({ params }: PageProps<"/handmade-in-nepal/[slug]">) {
-  const page = getHandmadePage((await params).slug);
+  const page = await getHandmadePage((await params).slug);
   if (!page) notFound();
-  const others = handmadePages.filter((p) => p.slug !== page.slug);
+  const art = page.art ?? { kind: "loom" as const, tone: "sand" as const };
+  const others = (await getHandmadePages()).filter((p) => p.slug !== page.slug);
   return (
     <>
       <div className="texture-grain border-b border-sand bg-cream">
@@ -31,13 +34,14 @@ export default async function HandmadeStoryPage({ params }: PageProps<"/handmade
             <p className="mt-4 max-w-md text-lg text-bark">{page.summary}</p>
           </div>
           <div className="aspect-[4/3] overflow-hidden rounded-t-[999px]">
-            <Artwork kind={page.art.kind} tone={page.art.tone} label={`${page.title} (placeholder image)`} />
+            <Artwork kind={art.kind} tone={art.tone} label={`${page.title} (placeholder image)`} />
           </div>
         </div>
       </div>
       <div className="container-page grid gap-12 py-10 md:py-14 lg:grid-cols-12">
         <article className="lg:col-span-8">
           <ContentRenderer blocks={page.blocks} />
+          {page.slug === "meet-the-artisans" && <ArtisanProfiles />}
         </article>
         <nav aria-label="More from Handmade in Nepal" className="lg:col-span-4">
           <div className="rounded-[2px] border border-sand p-5 lg:sticky lg:top-36">
@@ -55,5 +59,34 @@ export default async function HandmadeStoryPage({ params }: PageProps<"/handmade
         </nav>
       </div>
     </>
+  );
+}
+
+/** Only artisans with recorded consent are ever shown. */
+async function ArtisanProfiles() {
+  const artisans = await getPublicArtisans();
+  if (!artisans.length) return null;
+  return (
+    <ul className="mt-10 grid gap-6 sm:grid-cols-2">
+      {artisans.map((a) => (
+        <li key={a.id} className="rounded-[2px] bg-cream p-5">
+          {a.photoUrl && (
+            // eslint-disable-next-line @next/next/no-img-element -- uploaded artisan photo (already resized)
+            <img
+              src={a.photoUrl}
+              alt={`${a.displayName}, ${a.craft}`}
+              className="mb-4 aspect-[4/3] w-full rounded-[2px] object-cover"
+              loading="lazy"
+            />
+          )}
+          <h2 className="font-display text-2xl">{a.displayName}</h2>
+          <p className="eyebrow mt-1 text-terracotta">
+            {a.craft}
+            {a.region && ` · ${a.region}`}
+          </p>
+          {a.story && <p className="mt-3 whitespace-pre-line text-sm leading-relaxed text-bark">{a.story}</p>}
+        </li>
+      ))}
+    </ul>
   );
 }

@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useTransition } from "react";
+import { sendEnquiryAction } from "@/app/actions/enquiries";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { SelectField, TextArea, TextField } from "@/components/ui/field";
@@ -9,11 +10,12 @@ type Errors = Partial<Record<"name" | "email" | "message" | "business", string>>
 
 /**
  * Contact / wholesale enquiry form with client validation.
- * Stage 5 posts to a rate-limited server action that emails the shop via Resend
- * (with a honeypot field for spam). Until then it says so honestly.
+ * Posts to a rate-limited server action that emails the shop inbox (honeypot field for spam).
  */
 export function EnquiryForm({ kind }: { kind: "contact" | "wholesale" }) {
   const [errors, setErrors] = useState<Errors>({});
+  const [pending, start] = useTransition();
+  const [sent, setSent] = useState(false);
   function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     const f = new FormData(e.currentTarget);
@@ -25,7 +27,13 @@ export function EnquiryForm({ kind }: { kind: "contact" | "wholesale" }) {
     if (v("message").length < 10) next.message = "Please write a little more (at least 10 characters)";
     setErrors(next);
     if (Object.keys(next).length) return;
-    toast.info("Thanks! Enquiry emails are connected in Stage 5 — nothing was sent yet.");
+    const payload = Object.fromEntries([...f.entries()].map(([k, val]) => [k, String(val)]));
+    start(async () => {
+      const r = await sendEnquiryAction({ ...payload, kind });
+      if (!r.ok) return setErrors((r.fieldErrors ?? {}) as Errors);
+      setSent(true);
+      toast.success(r.message);
+    });
   }
   return (
     <form onSubmit={onSubmit} noValidate className="not-prose my-8 grid max-w-2xl gap-4 rounded-[2px] bg-cream p-5 sm:grid-cols-2 md:p-7">
@@ -54,11 +62,11 @@ export function EnquiryForm({ kind }: { kind: "contact" | "wholesale" }) {
         </>
       )}
       <TextArea label="Message" name="message" error={errors.message} className="sm:col-span-2" maxLength={2000} />
-      {/* Honeypot: hidden from people, tempting to bots. Checked server-side in Stage 5. */}
+      {/* Honeypot: hidden from people, tempting to bots. Checked server-side. */}
       <input type="text" name="company_website" tabIndex={-1} autoComplete="off" className="hidden" aria-hidden />
       <p className="text-xs text-bark sm:col-span-2">We use your details only to reply to your enquiry. See our privacy policy.</p>
-      <Button type="submit" className="sm:col-span-2 sm:justify-self-start">
-        Send message
+      <Button type="submit" className="sm:col-span-2 sm:justify-self-start" disabled={pending || sent}>
+        {sent ? "Message sent" : pending ? "Sending…" : "Send message"}
       </Button>
     </form>
   );

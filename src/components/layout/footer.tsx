@@ -3,11 +3,13 @@ import { Mail, Phone } from "lucide-react";
 import { Logo } from "@/components/brand/logo";
 import { FacebookIcon, InstagramIcon, TikTokIcon } from "@/components/brand/social-icons";
 import { footerNav } from "@/config/navigation";
-import { siteConfig } from "@/config/site";
+import { getSettings } from "@/server/settings";
 import { CookieSettingsButton } from "@/components/consent/cookie-settings-button";
 
-export function Footer() {
-  const { contact, social } = siteConfig;
+export async function Footer() {
+  const settings = await getSettings();
+  const { social } = settings;
+  const contact = settings.business;
   const socials = [
     { href: social.instagram, label: "Instagram", Icon: InstagramIcon },
     { href: social.tiktok, label: "TikTok", Icon: TikTokIcon },
@@ -18,7 +20,7 @@ export function Footer() {
       <div className="container-page grid gap-12 py-16 md:grid-cols-2 lg:grid-cols-12">
         <div className="lg:col-span-4">
           <Logo tone="light" />
-          <p className="mt-5 max-w-sm font-display text-xl italic text-linen">{siteConfig.slogan}</p>
+          <p className="mt-5 max-w-sm font-display text-xl italic text-linen">{settings.slogan}</p>
           <p className="mt-3 max-w-sm text-sm leading-relaxed text-sand-deep">
             Handmade bohemian clothing and accessories, made with artisans and small workshops in Nepal and shipped across the UK.
           </p>
@@ -80,7 +82,7 @@ export function Footer() {
       <div className="border-t border-sand/15">
         <div className="container-page flex flex-col gap-3 py-6 text-xs text-sand-deep md:flex-row md:items-center md:justify-between">
           <p>
-            © {siteConfig.name} — {contact.address}. Prices in GBP.
+            © {settings.business.name} — {contact.address}. Prices in GBP.
           </p>
           <p>Secure payments by Stripe · Visa · Mastercard · Amex · Apple Pay · Google Pay</p>
         </div>

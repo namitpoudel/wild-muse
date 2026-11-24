@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { Mail } from "lucide-react";
-import { siteConfig } from "@/config/site";
+import { getSettings } from "@/server/settings";
 
 const links = [
   ["Delivery Information", "/pages/delivery"],
@@ -11,7 +11,8 @@ const links = [
   ["Contact Us", "/pages/contact"],
 ];
 
-export function HelpAside({ current }: { current: string }) {
+export async function HelpAside({ current }: { current: string }) {
+  const { business } = await getSettings();
   return (
     <div className="space-y-6 lg:sticky lg:top-36">
       <nav aria-label="Help topics" className="rounded-[2px] border border-sand p-5">
@@ -32,12 +33,12 @@ export function HelpAside({ current }: { current: string }) {
       </nav>
       <div className="rounded-[2px] bg-olive-deep p-5 text-sand">
         <p className="font-display text-xl text-linen">Still need help?</p>
-        <p className="mt-1 text-sm">{siteConfig.contact.hours}</p>
+        <p className="mt-1 text-sm">{business.hours}</p>
         <a
-          href={`mailto:${siteConfig.contact.email}`}
+          href={`mailto:${business.email}`}
           className="mt-3 inline-flex items-center gap-2 text-sm font-semibold text-linen underline underline-offset-4"
         >
-          <Mail className="size-4" aria-hidden /> {siteConfig.contact.email}
+          <Mail className="size-4" aria-hidden /> {business.email}
         </a>
       </div>
     </div>

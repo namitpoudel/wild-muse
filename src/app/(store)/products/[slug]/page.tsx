@@ -6,17 +6,22 @@ import { ProductRail } from "@/components/home/product-rail";
 import { BuyBox } from "@/components/product/buy-box";
 import { ProductGallery } from "@/components/product/product-gallery";
 import { RecentlyViewed } from "@/components/product/recently-viewed";
+import { ReviewCard } from "@/components/product/review-card";
+import { WriteReview } from "@/components/product/review-form";
+import { getApprovedReviews } from "@/server/reviews";
+import { Suspense } from "react";
 import { Accordion } from "@/components/ui/accordion";
 import { Badge } from "@/components/ui/badge";
 import { Breadcrumbs } from "@/components/ui/breadcrumbs";
-import { ButtonLink } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/empty-state";
 import { Price } from "@/components/ui/price";
 import { StarRating } from "@/components/ui/star-rating";
 import { JsonLd } from "@/components/seo/json-ld";
-import { getCategory, getDepartment } from "@/lib/catalog/categories";
+import { getCategory, getDepartment } from "@/server/catalog/categories";
 import { productJsonLd } from "@/lib/seo";
-import { getAllProductSlugs, getProductBySlug, getProducts, getRelatedProducts, isNewArrival } from "@/lib/catalog/queries";
+import { getSeoBrand } from "@/server/seo-brand";
+import { getAllProductSlugs, getProductBySlug, getProducts, getRelatedProducts } from "@/server/catalog/queries";
+import { isNewArrival } from "@/lib/catalog/product-utils";
 
 export async function generateStaticParams() {
   return (await getAllProductSlugs()).map((slug) => ({ slug }));
@@ -37,8 +42,8 @@ export default async function ProductPage({ params }: PageProps<"/products/[slug
   const product = await getProductBySlug((await params).slug);
   if (!product) notFound();
   const dept = getDepartment(product.department)!;
-  const cat = getCategory(product.department, product.categorySlug);
-  const [related, all] = await Promise.all([getRelatedProducts(product, 4), getProducts()]);
+  const cat = await getCategory(product.department, product.categorySlug);
+  const [related, all, reviews] = await Promise.all([getRelatedProducts(product, 4), getProducts(), getApprovedReviews(product.id)]);
 
   const details = [
     { id: "description", title: "Description", content: <p>{product.description}</p> },
@@ -101,7 +106,7 @@ export default async function ProductPage({ params }: PageProps<"/products/[slug
 
   return (
     <>
-      <JsonLd data={productJsonLd(product)} />
+      <JsonLd data={productJsonLd(product, await getSeoBrand())} />
       <div className="container-page pt-6">
         <Breadcrumbs
           items={[
@@ -141,23 +146,38 @@ export default async function ProductPage({ params }: PageProps<"/products/[slug
             <h2 id="reviews-heading" className="font-display text-display-md">
               Reviews
             </h2>
-            <p className="mt-2 text-sm text-bark">
-              {product.rating.count ? `${product.rating.average.toFixed(1)} out of 5 from ${product.rating.count} reviews` : "No reviews yet."}
-            </p>
-            <ButtonLink href="/account/reviews" variant="outline" className="mt-5">
-              Write a review
-            </ButtonLink>
+            <div className="mt-2 flex items-center gap-3">
+              <StarRating average={product.rating.average} count={product.rating.count} />
+              <p className="text-sm text-bark">
+                {product.rating.count
+                  ? `${product.rating.average.toFixed(1)} out of 5 from ${product.rating.count} review${product.rating.count === 1 ? "" : "s"}`
+                  : "No reviews yet."}
+              </p>
+            </div>
+            <Suspense fallback={<div className="mt-5 h-11" />}>
+              <WriteReview productId={product.id} productName={product.name} slug={product.slug} />
+            </Suspense>
             <p className="mt-3 text-xs text-bark">
-              Sign in to review. Purchases are marked &ldquo;Verified&rdquo; automatically.{" "}
+              Only customers with an account can review. Purchases are marked &ldquo;Verified&rdquo; automatically from our order records.{" "}
               <Link href="/pages/review-policy" className="underline">
                 Review policy
               </Link>
             </p>
           </div>
           <div className="lg:col-span-8">
-            <EmptyState icon={MessageSquareHeart} title="Be the first to review" className="rounded-[2px] bg-linen">
-              Bought this piece? Share how it fits and feels to help other free spirits choose.
-            </EmptyState>
+            {reviews.length ? (
+              <ul className="grid gap-4 md:grid-cols-2">
+                {reviews.map((r) => (
+                  <li key={r.id}>
+                    <ReviewCard review={r} reportable />
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <EmptyState icon={MessageSquareHeart} title="Be the first to review" className="rounded-[2px] bg-linen">
+                Bought this piece? Share how it fits and feels to help other free spirits choose.
+              </EmptyState>
+            )}
           </div>
         </div>
       </section>

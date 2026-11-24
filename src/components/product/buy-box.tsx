@@ -2,7 +2,9 @@
 
 import { Check, Clock, MessageCircleQuestion, Share2, Truck } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { getLiveStockAction } from "@/app/actions/catalog";
+import { sendEnquiryAction } from "@/app/actions/enquiries";
 import { toast } from "sonner";
 import { useStore } from "@/components/cart/store-provider";
 import { Button } from "@/components/ui/button";
@@ -19,7 +21,7 @@ const LOW_STOCK = 3;
 /**
  * Variant selection + purchase actions. Availability is computed per colour/size
  * variant; unavailable combinations cannot be added. The server re-validates stock
- * when the order is created (Stage 4), so this is a UX guard, not the source of truth.
+ * when adding to the bag and again when the order is created, so this is a UX guard only.
  */
 export function BuyBox({ product }: { product: Product }) {
   const { addToCart } = useStore();
@@ -31,41 +33,44 @@ export function BuyBox({ product }: { product: Product }) {
   const [qty, setQty] = useState(1);
   const [sizeError, setSizeError] = useState(false);
 
-  const variantsForColour = useMemo(() => product.variants.filter((v) => v.colour === colour), [product.variants, colour]);
+  // Cached page data may be slightly behind; fetch live availability once mounted.
+  const [live, setLive] = useState<Record<string, number> | null>(null);
+  useEffect(() => {
+    let cancelled = false;
+    getLiveStockAction(product.id)
+      .then((s) => !cancelled && setLive(s))
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, [product.id]);
+  const variants = useMemo(() => product.variants.map((v) => (live && v.id in live ? { ...v, stock: live[v.id] } : v)), [product.variants, live]);
+  const variantsForColour = useMemo(() => variants.filter((v) => v.colour === colour), [variants, colour]);
   const variant = size ? variantsForColour.find((v) => v.size === size) : undefined;
   const stock = variant?.stock ?? 0;
-  const soldOutEverywhere = product.variants.every((v) => v.stock === 0);
+  const soldOutEverywhere = variants.every((v) => v.stock === 0);
 
   function selectColour(name: string) {
     setColour(name);
-    const v = product.variants.find((x) => x.colour === name && x.size === size);
+    const v = variants.find((x) => x.colour === name && x.size === size);
     if (v && v.stock === 0) setSize(null);
     setQty(1);
   }
 
-  function add(goToCheckout: boolean) {
+  async function add(goToCheckout: boolean) {
     if (!variant) {
       setSizeError(true);
       document.getElementById("size-options")?.focus();
       return;
     }
     if (variant.stock < qty) return;
-    addToCart(
-      {
-        variantId: variant.id,
-        productSlug: product.slug,
-        name: product.name,
-        size: variant.size,
-        colour: variant.colour,
-        unitPricePence: product.pricePence,
-        compareAtPence: product.compareAtPricePence,
-        image: product.images[0],
-        maxQuantity: variant.stock,
-      },
+    const added = await addToCart(
+      variant.id,
       qty,
+      { name: product.name, label: `${variant.colour} · ${variant.size}` },
       { openDrawer: !goToCheckout },
     );
-    if (goToCheckout) router.push("/checkout");
+    if (added && goToCheckout) router.push("/checkout");
   }
 
   async function share() {
@@ -90,7 +95,7 @@ export function BuyBox({ product }: { product: Product }) {
         </legend>
         <div className="flex flex-wrap gap-2.5">
           {product.colours.map((c) => {
-            const available = product.variants.some((v) => v.colour === c.name && v.stock > 0);
+            const available = variants.some((v) => v.colour === c.name && v.stock > 0);
             return (
               <button
                 key={c.name}
@@ -226,8 +231,14 @@ function AskQuestion({ productName }: { productName: string }) {
           className="space-y-4"
           onSubmit={(e) => {
             e.preventDefault();
-            toast.info("Enquiries are emailed to the shop from Stage 5 — nothing was sent yet.");
-            setOpen(false);
+            const f = new FormData(e.currentTarget);
+            const payload = Object.fromEntries([...f.entries()].map(([k, v]) => [k, String(v)]));
+            void sendEnquiryAction({ ...payload, kind: "product", product: productName }).then((r) => {
+              if (r.ok) {
+                toast.success(r.message);
+                setOpen(false);
+              } else toast.error(Object.values(r.fieldErrors ?? {})[0] ?? r.error);
+            });
           }}
         >
           <TextField label="Your name" name="name" autoComplete="name" required />

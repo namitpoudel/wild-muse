@@ -4,8 +4,10 @@ import { Suspense } from "react";
 import { ListingHeader } from "@/components/listing/listing-header";
 import { ProductListing } from "@/components/listing/product-listing";
 import { ProductGridSkeleton } from "@/components/ui/skeleton";
-import { departments, getCategoriesFor, getDepartment } from "@/lib/catalog/categories";
-import { getFacets, getProducts } from "@/lib/catalog/queries";
+import { departments } from "@/lib/catalog/categories";
+import { getFacets } from "@/lib/catalog/product-utils";
+import { getCategoriesFor, getDepartment } from "@/server/catalog/categories";
+import { getProducts } from "@/server/catalog/queries";
 
 export function generateStaticParams() {
   return departments.map((d) => ({ department: d.slug }));
@@ -15,7 +17,7 @@ export async function generateMetadata({ params }: PageProps<"/[department]">): 
   const dept = getDepartment((await params).department);
   if (!dept) return {};
   return {
-    title: `${dept.name}'s Bohemian Clothing`.replace("Jewellery & Accessories's Bohemian Clothing", "Handmade Jewellery & Accessories"),
+    title: dept.slug === "accessories" ? "Handmade Jewellery & Accessories" : `${dept.name}'s Bohemian Clothing`,
     description: `${dept.tagline} Handmade in Nepal, delivered across the UK.`,
     alternates: { canonical: `/${dept.slug}` },
   };
@@ -24,8 +26,7 @@ export async function generateMetadata({ params }: PageProps<"/[department]">): 
 export default async function DepartmentPage({ params }: PageProps<"/[department]">) {
   const dept = getDepartment((await params).department);
   if (!dept) notFound();
-  const products = await getProducts({ department: dept.slug });
-  const cats = getCategoriesFor(dept.slug);
+  const [products, cats] = await Promise.all([getProducts({ department: dept.slug }), getCategoriesFor(dept.slug)]);
   return (
     <>
       <ListingHeader

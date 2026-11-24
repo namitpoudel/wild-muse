@@ -1,11 +1,14 @@
 import { Hand, RotateCcw, ShieldCheck, Truck } from "lucide-react";
-import { siteConfig } from "@/config/site";
+import { getPublicConfig } from "@/server/public-config";
 import { formatPence } from "@/lib/money";
 
-export function ValueStrip() {
+export async function ValueStrip() {
+  const config = await getPublicConfig();
   const items = [
-    { Icon: Truck, title: `Free UK delivery over ${formatPence(siteConfig.commerce.freeDeliveryThresholdPence)}`, text: "Tracked options available" },
-    { Icon: RotateCcw, title: `${siteConfig.commerce.returnDays}-day returns`, text: "Simple, no-quibble returns" },
+    config.freeDeliveryThresholdPence !== null
+      ? { Icon: Truck, title: `Free UK delivery over ${formatPence(config.freeDeliveryThresholdPence)}`, text: "Tracked options available" }
+      : { Icon: Truck, title: "Tracked UK delivery", text: "Standard and express options" },
+    { Icon: RotateCcw, title: `${config.returnDays}-day returns`, text: "Simple, no-quibble returns" },
     { Icon: Hand, title: "Handmade in Nepal", text: "Small batches, real artisans" },
     { Icon: ShieldCheck, title: "Secure checkout", text: "Cards, Apple Pay & Google Pay" },
   ];

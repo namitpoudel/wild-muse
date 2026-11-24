@@ -6,9 +6,9 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { MediaImage } from "@/components/brand/artwork";
+import { useConfig } from "@/components/config-provider";
 import { Price } from "@/components/ui/price";
-import { POPULAR_SEARCHES } from "@/config/search";
-import type { Suggestion } from "@/lib/catalog/search";
+import type { Suggestion } from "@/server/catalog/search";
 import { clearSearchHistory, pushSearchHistory, readSearchHistory } from "@/lib/search-history";
 
 const EMPTY: Suggestion = { products: [], categories: [], total: 0 };
@@ -25,6 +25,7 @@ export function SearchOverlay({ trigger }: { trigger: React.ReactNode }) {
   const [loading, setLoading] = useState(false);
   const [history, setHistory] = useState<string[]>([]);
   const router = useRouter();
+  const POPULAR_SEARCHES = useConfig().popularSearches;
   const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {

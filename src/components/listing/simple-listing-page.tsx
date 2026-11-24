@@ -1,7 +1,7 @@
 import { Suspense } from "react";
 import type { Crumb } from "@/components/ui/breadcrumbs";
 import { ProductGridSkeleton } from "@/components/ui/skeleton";
-import { getFacets } from "@/lib/catalog/queries";
+import { getFacets } from "@/lib/catalog/product-utils";
 import type { Product } from "@/lib/catalog/types";
 import { ListingHeader } from "./listing-header";
 import { ProductListing } from "./product-listing";

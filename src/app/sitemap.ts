@@ -1,13 +1,18 @@
 import type { MetadataRoute } from "next";
-import { handmadePages } from "@/content/handmade";
-import { contentPages } from "@/content/pages";
-import { categories, departments } from "@/lib/catalog/categories";
-import { getCollections, getProducts } from "@/lib/catalog/queries";
+import { departments } from "@/lib/catalog/categories";
+import { getHandmadePages, getInfoPages } from "@/server/content/pages";
+import { getCategories, getCollections, getProducts } from "@/server/catalog/queries";
 import { absoluteUrl } from "@/lib/seo";
 
 /** XML sitemap of all public, indexable URLs (account, checkout and search are excluded). */
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const [products, collections] = await Promise.all([getProducts(), getCollections()]);
+  const [products, collections, categories, handmadePages, contentPages] = await Promise.all([
+    getProducts(),
+    getCollections(),
+    getCategories(),
+    getHandmadePages(),
+    getInfoPages(),
+  ]);
   const fixed = ["/", "/new-arrivals", "/best-sellers", "/sale", "/collections", "/handmade-in-nepal", "/track-order"];
   return [
     ...fixed.map((p) => ({ url: absoluteUrl(p), changeFrequency: "daily" as const, priority: p === "/" ? 1 : 0.8 })),
