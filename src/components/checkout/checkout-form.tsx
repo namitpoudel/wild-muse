@@ -2,11 +2,17 @@
 
 import { AlertTriangle, Lock, ShoppingBag, Tag, X } from "lucide-react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState, useTransition } from "react";
 import { toast } from "sonner";
 import { applyCouponAction, removeCouponAction } from "@/app/actions/cart";
-import { getCheckoutDefaultsAction, placeOrderAction, quoteCheckoutAction, type CheckoutDefaults, type CheckoutQuote } from "@/app/actions/checkout";
+import {
+  checkPostcodeAction,
+  getCheckoutDefaultsAction,
+  placeOrderAction,
+  quoteCheckoutAction,
+  type CheckoutDefaults,
+  type CheckoutQuote,
+} from "@/app/actions/checkout";
 import { MediaImage } from "@/components/brand/artwork";
 import { useStore } from "@/components/cart/store-provider";
 import { Button, ButtonLink } from "@/components/ui/button";
@@ -27,7 +33,6 @@ const ADDRESS_FIELDS = ["fullName", "line1", "line2", "city", "county", "postcod
  */
 export function CheckoutForm() {
   const { lines, ready, setCart, refresh } = useStore();
-  const router = useRouter();
   const [quote, setQuote] = useState<CheckoutQuote | null>(null);
   const [defaults, setDefaults] = useState<CheckoutDefaults | null>(null);
   const [method, setMethod] = useState<string | undefined>();
@@ -40,6 +45,7 @@ export function CheckoutForm() {
   const [addressKey, setAddressKey] = useState(0);
   const [prefill, setPrefill] = useState<Record<string, string>>({});
   const [placing, startPlacing] = useTransition();
+  const [postcodeNote, setPostcodeNote] = useState<string | null>(null);
 
   const loadQuote = useCallback(async (code?: string, mail?: string) => {
     setQuote(await quoteCheckoutAction({ shippingCode: code, email: mail }));
@@ -110,7 +116,8 @@ export function CheckoutForm() {
         setTimeout(() => document.querySelector<HTMLElement>("[aria-invalid=true], #checkout-error")?.focus(), 50);
         return;
       }
-      router.push(res.data.redirectUrl);
+      // Stripe's hosted payment page (external URL).
+      window.location.assign(res.data.redirectUrl);
     });
   }
 
@@ -162,7 +169,21 @@ export function CheckoutForm() {
           autoCapitalize="characters"
           defaultValue={prefix === "shipping" ? prefill.postcode : ""}
           error={errors[`${prefix}.postcode`]}
-          onBlur={(ev) => (ev.currentTarget.value = normaliseUkPostcode(ev.currentTarget.value))}
+          onBlur={(ev) => {
+            const el = ev.currentTarget;
+            el.value = normaliseUkPostcode(el.value);
+            if (prefix === "shipping" && el.value.length >= 5)
+              void checkPostcodeAction(el.value).then((r) =>
+                setPostcodeNote(
+                  r.status === "not-found"
+                    ? "We couldn't find this postcode — please double-check it (you can still continue)."
+                    : r.status === "bad-format"
+                      ? "That doesn't look like a UK postcode."
+                      : null,
+                ),
+              );
+          }}
+          hint={prefix === "shipping" && postcodeNote ? postcodeNote : undefined}
           className="sm:max-w-48"
         />
         {prefix === "shipping" && (

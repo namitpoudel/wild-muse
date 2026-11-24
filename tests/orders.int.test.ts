@@ -17,7 +17,15 @@ async function cartWith(qty: number) {
   return cart.id;
 }
 const checkout = (cartId: string) =>
-  createPendingOrder({ cartId, email: `${TAG}@example.com`, userId: null, shippingAddress: address, billingAddress: address, shippingCode: "uk-standard", marketingOptIn: false });
+  createPendingOrder({
+    cartId,
+    email: `${TAG}@example.com`,
+    userId: null,
+    shippingAddress: address,
+    billingAddress: address,
+    shippingCode: "uk-standard",
+    marketingOptIn: false,
+  });
 const variant = () => db.productVariant.findUniqueOrThrow({ where: { id: variantId } });
 
 beforeAll(async () => {

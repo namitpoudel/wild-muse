@@ -1,8 +1,10 @@
 "use server";
 
 import { z } from "zod";
-import { fail, ok } from "@/app/actions/result";
-import { zBool } from "@/lib/zod-helpers";
+import { ok } from "@/app/actions/result";
+import { zBool, zPence } from "@/lib/zod-helpers";
+import { RefundError, refundOrder } from "@/server/payments/refunds";
+import { reconcileOrder } from "@/server/payments/reconcile";
 import { adminAction, AdminError, formToObject } from "@/server/admin/action";
 import { TAGS } from "@/server/cache";
 import { db } from "@/server/db";
@@ -11,6 +13,7 @@ import { sendCancellationEmail, sendDispatchEmail } from "@/server/orders/notifi
 import { cancelPaidOrder, cancelPendingOrder } from "@/server/orders/orders";
 import { audit } from "@/server/security/audit";
 import { CARRIERS } from "@/server/shipping-tracking";
+import { sendToClickAndDrop, syncClickAndDropShipment } from "@/server/shipping-providers";
 
 const NEXT: Record<string, string[]> = {
   PAID: ["PROCESSING"],
@@ -132,8 +135,103 @@ export async function saveOrderNotesAction(fd: FormData) {
   return notes(formToObject(fd));
 }
 
-/** Refunds go through the payment provider so money actually moves — wired to Stripe in Stage 5. */
-export async function refundOrderAction(_fd: FormData) {
-  void _fd;
-  return fail("Refunds are issued through Stripe and are connected in Stage 5. Until then, refund from the Stripe dashboard.");
+/** Refunds go through Stripe so money really moves; the order updates when Stripe confirms. */
+const refund = adminAction(
+  "orders.refund",
+  z.object({
+    id: z.string().max(40),
+    amountPence: zPence.refine((v) => v !== undefined && v > 0, "Enter the amount to refund"),
+    reason: z.string().trim().min(3, "Give a reason").max(200),
+    restock: zBool,
+  }),
+  async (d, actor) => {
+    try {
+      const r = await refundOrder({ orderId: d.id, amountPence: d.amountPence!, reason: d.reason, restock: d.restock, actorId: actor.id });
+      await audit(
+        actor,
+        "order.refund",
+        { type: "Order", id: d.id },
+        { summary: `£${(r.amountPence / 100).toFixed(2)} — ${d.reason} (${r.status.toLowerCase()})` },
+      );
+      return ok(
+        null,
+        r.status === "SUCCEEDED"
+          ? "Refund completed — customer emailed"
+          : r.status === "PENDING"
+            ? "Refund submitted — Stripe is processing it"
+            : "Stripe could not complete the refund",
+      );
+    } catch (e) {
+      if (e instanceof RefundError) throw new AdminError(e.message);
+      throw e;
+    }
+  },
+  { tags: [TAGS.orders] },
+);
+export async function refundOrderAction(fd: FormData) {
+  return refund(formToObject(fd));
+}
+
+const recheck = adminAction(
+  "orders.update",
+  z.object({ id: z.string().max(40) }),
+  async ({ id }, actor) => {
+    const result = await reconcileOrder(id);
+    await audit(actor, "order.reconcile", { type: "Order", id }, { summary: `Stripe says: ${result}` });
+    return ok(
+      null,
+      {
+        paid: "Stripe confirms payment — order marked paid",
+        cancelled: "Checkout expired — stock released",
+        pending: "Stripe still shows this checkout as unpaid",
+        skipped: "Nothing to check",
+      }[result],
+    );
+  },
+  { tags: [TAGS.orders, TAGS.products] },
+);
+export async function recheckPaymentAction(fd: FormData) {
+  return recheck(formToObject(fd));
+}
+
+const toClickAndDrop = adminAction(
+  "orders.update",
+  z.object({ id: z.string().max(40) }),
+  async ({ id }, actor) => {
+    try {
+      const r = await sendToClickAndDrop(id);
+      await audit(actor, "order.clickanddrop", { type: "Order", id }, { summary: `Click & Drop order ${r.orderIdentifier}` });
+      return ok(null, `Sent to Click & Drop (order ${r.orderIdentifier}) — print the label there`);
+    } catch (e) {
+      throw new AdminError((e as Error).message);
+    }
+  },
+  { tags: [TAGS.orders] },
+);
+export async function sendToClickAndDropAction(fd: FormData) {
+  return toClickAndDrop(formToObject(fd));
+}
+
+const syncShipment = adminAction(
+  "orders.update",
+  z.object({ shipmentId: z.string().max(40) }),
+  async ({ shipmentId }) => {
+    try {
+      const r = await syncClickAndDropShipment(shipmentId);
+      return ok(
+        null,
+        {
+          dispatched: "Dispatched — tracking saved and customer emailed",
+          "label-printed": "Label printed — not shipped yet",
+          waiting: "No label or tracking yet in Click & Drop",
+        }[r],
+      );
+    } catch (e) {
+      throw new AdminError((e as Error).message);
+    }
+  },
+  { tags: [TAGS.orders] },
+);
+export async function syncShipmentAction(fd: FormData) {
+  return syncShipment(formToObject(fd));
 }

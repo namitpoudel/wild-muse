@@ -4,7 +4,8 @@ import { z } from "zod";
 import { getCurrentUser } from "@/server/auth/session";
 import { getCartIdForCheckout } from "@/server/cart/cart";
 import { db } from "@/server/db";
-import { CheckoutError, createPendingOrder, quoteCart } from "@/server/orders/orders";
+import { cancelPendingOrder, CheckoutError, createPendingOrder, quoteCart } from "@/server/orders/orders";
+import { createCheckoutSession, isStripeConfigured } from "@/server/payments/stripe";
 import { rateLimit } from "@/server/security/rate-limit";
 import { getSettings } from "@/server/settings";
 import { emailSchema, ukAddressSchema, type UkAddress } from "@/lib/validation";
@@ -99,9 +100,9 @@ const placeOrderSchema = z.object({
 });
 
 /**
- * Place the order: validates everything server-side, re-prices the cart, reserves stock and
- * creates a PENDING_PAYMENT order. Stage 5 then redirects to Stripe Checkout; the order is
- * only marked paid by the verified Stripe webhook.
+ * Place the order: validates everything server-side, re-prices the cart, reserves stock,
+ * creates a PENDING_PAYMENT order and returns the Stripe Checkout URL. The order is only
+ * marked paid by the signature-verified Stripe webhook.
  */
 export async function placeOrderAction(input: unknown): Promise<ActionResult<{ redirectUrl: string }>> {
   const rl = await rateLimit("checkout", { max: 10, windowSeconds: 300 });
@@ -116,9 +117,9 @@ export async function placeOrderAction(input: unknown): Promise<ActionResult<{ r
   const user = await getCurrentUser();
   if (!user && !settings.commerce.allowGuestCheckout) return fail("Please sign in to check out.");
 
-  if (!process.env.STRIPE_SECRET_KEY) {
-    // Honest guard: never create orders we can't take payment for.
-    return fail("Online payment is not connected yet (Stage 5). Your bag has been kept — no order was placed and nothing was charged.");
+  if (!isStripeConfigured()) {
+    // Never create orders we can't take payment for.
+    return fail("Online payment is temporarily unavailable. Your bag has been kept — no order was placed and nothing was charged.");
   }
 
   const cartId = await getCartIdForCheckout();
@@ -134,11 +135,26 @@ export async function placeOrderAction(input: unknown): Promise<ActionResult<{ r
       deliveryInstructions: d.instructions || null,
       marketingOptIn: d.marketingOptIn,
     });
-    // Stage 5: create the Stripe Checkout Session for `order` and return its URL.
-    return ok({ redirectUrl: `/checkout/pending?order=${order.id}` });
+    try {
+      const url = await createCheckoutSession(order.id);
+      return ok({ redirectUrl: url });
+    } catch (e) {
+      // Couldn't open the payment page: release the stock hold straight away.
+      console.error("[checkout] Stripe session failed", e);
+      await cancelPendingOrder(order.id, "Payment page could not be created");
+      return fail("We couldn't connect to our payment provider. You have not been charged — please try again in a moment.");
+    }
   } catch (e) {
     if (e instanceof CheckoutError) return fail(e.message);
     console.error("[checkout]", e);
     return fail("Something went wrong placing your order. You have not been charged — please try again.");
   }
+}
+
+/** Non-blocking postcode check for the checkout and address forms. */
+export async function checkPostcodeAction(postcode: string) {
+  const rl = await rateLimit("postcode", { max: 30, windowSeconds: 60 });
+  if (!rl.ok) return { postcode, status: "unknown" as const };
+  const { lookupPostcode } = await import("@/server/postcode-lookup");
+  return lookupPostcode(String(postcode).slice(0, 12));
 }

@@ -1,7 +1,17 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
-import { cancelOrderAction, dispatchOrderAction, refundOrderAction, saveOrderNotesAction, setOrderStatusAction } from "../actions";
+import {
+  cancelOrderAction,
+  dispatchOrderAction,
+  recheckPaymentAction,
+  refundOrderAction,
+  saveOrderNotesAction,
+  sendToClickAndDropAction,
+  setOrderStatusAction,
+  syncShipmentAction,
+} from "../actions";
+import { isClickAndDropConfigured } from "@/server/shipping-providers/click-and-drop";
 import { OrderStatusBadge } from "@/components/account/order-status-badge";
 import { AdminForm, F, FArea, FSelect, Submit } from "@/components/admin/admin-form";
 import { AdminHeader, AdminSkeleton, Card } from "@/components/admin/ui";
@@ -52,6 +62,7 @@ async function OrderDetail({ params }: Pick<PageProps<"/admin/orders/[id]">, "pa
   const canUpdate = can(user.role, "orders.update");
   const canRefund = can(user.role, "orders.refund");
   const open = ["PAID", "PROCESSING"].includes(o.status);
+  const clickAndDrop = isClickAndDropConfigured();
   return (
     <div className="space-y-6">
       <AdminHeader
@@ -141,6 +152,27 @@ async function OrderDetail({ params }: Pick<PageProps<"/admin/orders/[id]">, "pa
             ) : (
               <p className="mb-4 text-sm text-bark">Not dispatched yet.</p>
             )}
+            {canUpdate &&
+              o.shipments
+                .filter((s) => s.providerRef && ["PENDING", "LABEL_CREATED"].includes(s.status))
+                .map((s) => (
+                  <AdminForm key={s.id} action={syncShipmentAction} className="mb-4 flex flex-wrap items-center gap-3 text-sm">
+                    <input type="hidden" name="shipmentId" value={s.id} />
+                    <span>
+                      Click & Drop order {s.providerRef} — {s.status === "LABEL_CREATED" ? "label printed" : "awaiting label"}
+                    </span>
+                    <Submit variant="outline">Check for tracking</Submit>
+                  </AdminForm>
+                ))}
+            {canUpdate && open && clickAndDrop && !o.shipments.some((s) => s.providerRef) && (
+              <AdminForm action={sendToClickAndDropAction} className="mb-4 flex flex-wrap items-center gap-3 border-b border-sand pb-4">
+                <input type="hidden" name="id" value={o.id} />
+                <Submit variant="dark">Send to Royal Mail Click & Drop</Submit>
+                <span className="text-xs text-bark">
+                  Creates the order in Click & Drop so you can print the label. Tracking syncs back automatically.
+                </span>
+              </AdminForm>
+            )}
             {canUpdate && open && (
               <AdminForm action={dispatchOrderAction} className="grid gap-3 border-t border-sand pt-4 sm:grid-cols-2">
                 <input type="hidden" name="id" value={o.id} />
@@ -150,7 +182,7 @@ async function OrderDetail({ params }: Pick<PageProps<"/admin/orders/[id]">, "pa
                 <F label="Tracking URL (optional)" name="trackingUrl" hint="Built automatically for known carriers." />
                 <F type="checkbox" label="Email the customer" name="notify" defaultValue="1" className="sm:col-span-2" />
                 <Submit variant="dark" className="sm:col-span-2 sm:justify-self-start">
-                  Mark as dispatched
+                  Mark as dispatched manually
                 </Submit>
               </AdminForm>
             )}
@@ -227,15 +259,39 @@ async function OrderDetail({ params }: Pick<PageProps<"/admin/orders/[id]">, "pa
               </ul>
             )}
             {canRefund && o.payments.some((p) => p.status === "SUCCEEDED") && (
-              <AdminForm action={refundOrderAction} className="mt-4 space-y-3 border-t border-sand pt-4">
+              <AdminForm
+                action={refundOrderAction}
+                confirm="Refund this amount to the customer's card? This can't be undone."
+                className="mt-4 space-y-3 border-t border-sand pt-4"
+              >
                 <input type="hidden" name="id" value={o.id} />
-                <F label="Refund amount (£)" name="amount" inputMode="decimal" />
-                <F label="Reason" name="reason" />
+                <F
+                  label="Refund amount (£)"
+                  name="amountPence"
+                  inputMode="decimal"
+                  defaultValue={(
+                    (o.totalPence - o.refunds.filter((r) => r.status !== "FAILED").reduce((n, r) => n + r.amountPence, 0)) /
+                    100
+                  ).toFixed(2)}
+                />
+                <F label="Reason" name="reason" placeholder="e.g. Returned within 14 days" />
+                <F type="checkbox" label="Return items to stock (full refunds)" name="restock" />
                 <Submit variant="outline">Refund via Stripe</Submit>
               </AdminForm>
             )}
           </Card>
 
+          {canUpdate && o.status === "PENDING_PAYMENT" && o.stripeCheckoutSessionId && (
+            <Card title="Awaiting payment">
+              <p className="mb-3 text-sm text-bark">
+                The customer started paying on Stripe. If they say they paid but this hasn&apos;t updated, ask Stripe directly:
+              </p>
+              <AdminForm action={recheckPaymentAction}>
+                <input type="hidden" name="id" value={o.id} />
+                <Submit variant="outline">Check payment with Stripe</Submit>
+              </AdminForm>
+            </Card>
+          )}
           {canUpdate && ["PENDING_PAYMENT", "PAID", "PROCESSING"].includes(o.status) && (
             <Card title="Cancel order">
               <AdminForm action={cancelOrderAction} confirm="Cancel this order?" className="space-y-3">

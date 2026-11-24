@@ -24,7 +24,12 @@ it("creates a paid order for E2E tests", async () => {
     shippingCode: "uk-standard",
     marketingOptIn: false,
   });
-  await markOrderPaid(order.id, { providerPaymentId: `fixture_${order.id}`, amountPence: order.totalPence, method: "test-fixture" });
+  if (process.env.FIXTURE_MODE === "pending") {
+    // Leave it awaiting payment so the E2E test can confirm it through the signed webhook endpoint.
+    await db.order.update({ where: { id: order.id }, data: { stripeCheckoutSessionId: `cs_test_e2e_${order.id}` } });
+  } else {
+    await markOrderPaid(order.id, { providerPaymentId: `fixture_${order.id}`, amountPence: order.totalPence, method: "test-fixture" });
+  }
   await db.cart.delete({ where: { id: cart.id } });
-  console.log(`FIXTURE_ORDER=${order.id} WM-${10000 + order.orderNumber}`);
+  console.log(`FIXTURE_ORDER=${order.id} WM-${10000 + order.orderNumber} TOTAL=${order.totalPence}`);
 }, 30000);

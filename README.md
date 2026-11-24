@@ -3,7 +3,7 @@
 Premium bohemian and handmade Nepali fashion — a UK e-commerce platform built with Next.js 16, TypeScript, Tailwind CSS,
 PostgreSQL (Prisma 7) and Better Auth.
 
-> Project status: **Stage 4 of 7 complete** (backend, database, accounts, admin). Payments go live in Stage 5. See `docs/`.
+> Project status: **Stage 5 of 7 complete** (Stripe Checkout + webhooks, refunds, returns, Royal Mail Click & Drop, notifications). See `docs/`.
 
 ## Run locally
 
@@ -60,6 +60,17 @@ npm run admin:create -- you@example.com
 The admin dashboard is at http://localhost:3000/admin. In development, emails (verification, password reset, order
 updates) are printed to the terminal instead of being sent.
 
+### Payments in development
+
+Set `STRIPE_SECRET_KEY` to a **test** key (`sk_test_…`). To receive webhooks locally, use the Stripe CLI:
+
+```bash
+stripe listen --forward-to localhost:3000/api/webhooks/stripe
+```
+
+Copy the `whsec_…` it prints into `STRIPE_WEBHOOK_SECRET`. Pay with test card `4242 4242 4242 4242`. Without a Stripe key,
+checkout refuses to create orders. There is no simulated payment.
+
 ## Scripts
 
 | Command                                  | Purpose                                               |
@@ -95,4 +106,5 @@ docs/                stage reports and screenshots
 - `docs/02-stage-2-design-system.md` — brand, design system, UI
 - `docs/03-stage-3-frontend.md` — search, content pages, cookie consent, SEO
 - `docs/04-stage-4-backend.md` — database, auth, cart/orders, admin, security model, test results
+- `docs/05-stage-5-payments-shipping.md` — Stripe, webhooks, refunds, returns, Click & Drop, emails, test status
 - `docs/screenshots/` — desktop, mobile and admin screenshots

@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
+  Undo2,
   BarChart3,
   Boxes,
   ClipboardList,
@@ -35,6 +36,7 @@ export const adminNav = [
     group: "Sales",
     items: [
       { href: "/admin/orders", label: "Orders", Icon: ShoppingCart },
+      { href: "/admin/returns", label: "Returns", Icon: Undo2 },
       { href: "/admin/customers", label: "Customers", Icon: Users },
       { href: "/admin/discounts", label: "Discount codes", Icon: Tag },
       { href: "/admin/reviews", label: "Reviews", Icon: Star },

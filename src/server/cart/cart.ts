@@ -191,3 +191,11 @@ export async function clearCart(cartId: string) {
   await db.cartItem.deleteMany({ where: { cartId } });
   await db.cart.update({ where: { id: cartId }, data: { couponCode: null } });
 }
+
+/** Current visitor's cart id WITHOUT side effects (safe to call while rendering a page). */
+export async function peekCartId(): Promise<string | null> {
+  const user = await getCurrentUser();
+  if (user) return (await db.cart.findUnique({ where: { userId: user.id }, select: { id: true } }))?.id ?? null;
+  const token = await readToken();
+  return token ? ((await db.cart.findUnique({ where: { token }, select: { id: true } }))?.id ?? null) : null;
+}

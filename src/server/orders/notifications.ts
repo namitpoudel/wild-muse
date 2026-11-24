@@ -57,3 +57,38 @@ export async function sendCancellationEmail(orderId: string, reason: string) {
   });
   await sendEmail({ to: o.email, subject: `Order cancelled — ${formatOrderNumber(o.orderNumber)}`, html, text, tags: { type: "order-cancelled" } });
 }
+
+/** Alert the shop inbox about a new paid order (and any stock conflict). */
+export async function sendNewOrderAlert(orderId: string, stockConflict: boolean) {
+  const { getSettings } = await import("../settings");
+  const s = await getSettings();
+  const o = await db.order.findUniqueOrThrow({ where: { id: orderId }, include: { items: true } });
+  const { html, text } = await layout({
+    title: `New order ${formatOrderNumber(o.orderNumber)} — ${formatPenceExact(o.totalPence)}`,
+    intro: stockConflict
+      ? "⚠ Payment arrived after the stock hold expired and some items are no longer available. Check the order notes."
+      : "A new order has been paid and is ready to prepare.",
+    paragraphs: [
+      ...o.items.map((i) => `${i.quantity} × ${i.productName} (${i.colour}, ${i.size}) — SKU ${i.sku}`),
+      `Delivery: ${o.shippingMethodName}`,
+    ],
+    cta: { label: "Open in admin", url: url(`/admin/orders/${o.id}`) },
+  });
+  await sendEmail({
+    to: s.business.email,
+    subject: `${stockConflict ? "⚠ " : ""}New order ${formatOrderNumber(o.orderNumber)}`,
+    html,
+    text,
+    tags: { type: "admin-new-order" },
+  });
+}
+
+export async function sendRefundEmail(orderId: string, amountPence: number) {
+  const o = await db.order.findUniqueOrThrow({ where: { id: orderId } });
+  const { html, text } = await layout({
+    title: "Your refund is on its way",
+    intro: `We've refunded ${formatPenceExact(amountPence)} for order ${formatOrderNumber(o.orderNumber)} to your original payment method.`,
+    paragraphs: ["Refunds usually appear within 5–10 working days, depending on your bank."],
+  });
+  await sendEmail({ to: o.email, subject: `Refund processed — ${formatOrderNumber(o.orderNumber)}`, html, text, tags: { type: "order-refund" } });
+}

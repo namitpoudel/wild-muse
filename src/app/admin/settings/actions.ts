@@ -45,7 +45,7 @@ const commerce = adminAction(
   z.object({
     returnDays: z.coerce.number().int().min(14, "UK law requires at least 14 days").max(365),
     newsletterDiscountPercent: z.coerce.number().int().min(0).max(50),
-    reservationMinutes: z.coerce.number().int().min(10).max(120),
+    reservationMinutes: z.coerce.number().int().min(30, "Stripe keeps payment pages open for at least 30 minutes").max(120),
     allowGuestCheckout: zBool,
     vatRegistered: zBool,
     showVatOnInvoices: zBool,

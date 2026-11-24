@@ -5,7 +5,9 @@ import { Suspense } from "react";
 import { AccountSkeleton } from "@/components/account/account-skeleton";
 import { OrderStatusBadge } from "@/components/account/order-status-badge";
 import { formatPenceExact } from "@/lib/money";
+import { ReturnForm } from "@/components/account/return-form";
 import { getMyOrder } from "@/server/account";
+import { returnEligibility } from "@/server/returns";
 import { formatOrderNumber } from "@/server/orders/format";
 
 export const metadata: Metadata = { title: "Order details" };
@@ -26,6 +28,7 @@ async function Detail({ params }: Pick<PageProps<"/account/orders/[id]">, "param
   const o = await getMyOrder(id.slice(0, 40));
   if (!o) notFound();
   const ship = o.shippingAddress as unknown as Addr;
+  const elig = await returnEligibility(o.id);
   return (
     <div className="space-y-8">
       <div className="flex flex-wrap items-center justify-between gap-4">
@@ -136,6 +139,27 @@ async function Detail({ params }: Pick<PageProps<"/account/orders/[id]">, "param
         </div>
         <div className="rounded-[2px] bg-cream p-5 text-sm">
           <h2 className="font-display text-xl">Need to return something?</h2>
+          {elig.eligible ? (
+            <ReturnForm
+              orderId={o.id}
+              statutory={elig.statutory}
+              daysLeft={elig.daysLeft}
+              items={o.items
+                .filter((i) => i.quantity > i.refundedQuantity)
+                .map((i) => ({ id: i.id, label: `${i.productName} (${i.colour}, ${i.size})`, max: i.quantity - i.refundedQuantity }))}
+            />
+          ) : (
+            <p className="mt-2 text-bark">{elig.reason}</p>
+          )}
+          {o.returns.length > 0 && (
+            <ul className="mt-3 space-y-1 text-xs">
+              {o.returns.map((r) => (
+                <li key={r.id}>
+                  Return requested {dt.format(r.createdAt)} — <strong>{r.status.toLowerCase()}</strong>
+                </li>
+              ))}
+            </ul>
+          )}
           <p className="mt-2 text-bark">
             You can cancel within 14 days of receiving your order. See{" "}
             <Link href="/pages/returns" className="underline">

@@ -37,7 +37,12 @@ export async function getMyOrder(orderId: string) {
   const user = await requireUser(`/account/orders/${orderId}`);
   return db.order.findFirst({
     where: { id: orderId, userId: user.id },
-    include: { items: true, shipments: { include: { events: { orderBy: { occurredAt: "desc" } } } }, refunds: true },
+    include: {
+      items: true,
+      shipments: { include: { events: { orderBy: { occurredAt: "desc" } } } },
+      refunds: true,
+      returns: { orderBy: { createdAt: "desc" } },
+    },
   });
 }
 
