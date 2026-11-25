@@ -1,0 +1,49 @@
+# Runs on every push and pull request: lint, types, unit + integration tests against a real
+# PostgreSQL, and a production build. Uses no secrets — Stripe/Resend are never called.
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: wildmuse
+          POSTGRES_PASSWORD: wildmuse_ci
+          POSTGRES_DB: wildmuse
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U wildmuse" --health-interval 5s --health-timeout 5s --health-retries 10
+    env:
+      DATABASE_URL: postgresql://wildmuse:wildmuse_ci@localhost:5432/wildmuse?schema=public
+      BETTER_AUTH_SECRET: ci-only-not-a-real-secret-0123456789abcdef
+      BETTER_AUTH_URL: http://localhost:3000
+      NEXT_PUBLIC_SITE_URL: http://localhost:3000
+      STRIPE_WEBHOOK_SECRET: whsec_ci_local
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npx prisma migrate deploy
+      - run: SEED_DEMO=true npm run db:seed
+      - run: npm run lint
+      - run: npm run typecheck
+      - run: npm run format:check
+      - run: npm test
+      - run: npm run check:contrast
+      - run: npm audit --audit-level=high
+      - run: npm run build

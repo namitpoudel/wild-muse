@@ -21,6 +21,7 @@ import {
   Truck,
   Users,
   Factory,
+  Rocket,
 } from "lucide-react";
 import { LogoMark } from "@/components/brand/logo";
 
@@ -30,6 +31,7 @@ export const adminNav = [
     items: [
       { href: "/admin", label: "Dashboard", Icon: LayoutDashboard },
       { href: "/admin/reports", label: "Reports", Icon: BarChart3 },
+      { href: "/admin/launch", label: "Launch readiness", Icon: Rocket },
     ],
   },
   {

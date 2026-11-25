@@ -1,4 +1,6 @@
 import type { Metadata } from "next";
+import { notFound } from "next/navigation";
+import { isLiveDeployment } from "@/lib/env-check";
 import { PackageOpen } from "lucide-react";
 import { Artwork } from "@/components/brand/artwork";
 import { LogoMark } from "@/components/brand/logo";
@@ -48,6 +50,8 @@ function Section({ title, children }: { title: string; children: React.ReactNode
 }
 
 export default async function DesignSystemPage() {
+  // Internal style guide: available in development and previews, never on the live shop.
+  if (isLiveDeployment(process.env)) notFound();
   const [sample] = await getProducts({ limit: 1 });
   return (
     <div className="container-page py-12">

@@ -3,7 +3,7 @@
 Premium bohemian and handmade Nepali fashion — a UK e-commerce platform built with Next.js 16, TypeScript, Tailwind CSS,
 PostgreSQL (Prisma 7) and Better Auth.
 
-> Project status: **Stage 6 of 7 complete** (security headers, WCAG 2.2 AA audit, Lighthouse, load test). See `docs/`.
+> Project status: **all 7 stages complete, ready to deploy.** Deployment guide, backups and launch checklist: `docs/07-stage-7-deployment-launch.md`.
 
 ## Run locally
 
@@ -71,6 +71,11 @@ stripe listen --forward-to localhost:3000/api/webhooks/stripe
 Copy the `whsec_…` it prints into `STRIPE_WEBHOOK_SECRET`. Pay with test card `4242 4242 4242 4242`. Without a Stripe key,
 checkout refuses to create orders. There is no simulated payment.
 
+## Deploying
+
+Follow `docs/07-stage-7-deployment-launch.md` (Vercel Pro + Supabase Pro in London, Resend, Stripe). Production builds
+run `vercel-build`: configuration check → database migrations → build.
+
 ## Scripts
 
 | Command                                  | Purpose                                               |
@@ -86,6 +91,9 @@ checkout refuses to create orders. There is no simulated payment.
 | `npm run db:studio`                      | Browse the database                                   |
 | `npm run admin:create -- <email> [ROLE]` | Give an existing account a staff role (default OWNER) |
 | `npm run check:contrast`                 | WCAG 2.2 AA contrast check for the colour tokens      |
+| `npm run check:env`                      | Check production settings (also runs on deploy)       |
+| `npm run smoke -- <url>`                 | Read-only post-deploy check of a running site         |
+| `npm run db:backup` / `db:restore`       | Encrypted database backup / restore (see docs/07)     |
 
 ## Project structure
 
@@ -108,4 +116,5 @@ docs/                stage reports and screenshots
 - `docs/04-stage-4-backend.md` — database, auth, cart/orders, admin, security model, test results
 - `docs/05-stage-5-payments-shipping.md` — Stripe, webhooks, refunds, returns, Click & Drop, emails, test status
 - `docs/06-stage-6-security-quality.md` — security headers/CSP, OWASP review, accessibility audit, Lighthouse, load test
+- `docs/07-stage-7-deployment-launch.md` — **deploy step by step**, costs, environment variables, backups, monitoring, runbook, launch checklist
 - `docs/screenshots/` — desktop, mobile and admin screenshots

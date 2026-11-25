@@ -45,3 +45,8 @@ next-env.d.ts
 /src/generated/
 /public/uploads/
 /storage/
+
+# Database backups contain personal data — never commit
+backups/
+*.dump
+*.dump.gpg
