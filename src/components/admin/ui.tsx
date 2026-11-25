@@ -51,7 +51,7 @@ export function Table({ head, children, empty }: { head: ReactNode[]; children: 
           <tr className="border-b border-sand bg-cream/50 text-left text-xs uppercase tracking-[0.1em] text-bark">
             {head.map((h, i) => (
               <th key={i} scope="col" className="px-4 py-3 font-semibold">
-                {h}
+                {h === "" ? <span className="sr-only">Actions</span> : h}
               </th>
             ))}
           </tr>

@@ -28,7 +28,9 @@ async function main() {
       process.exit(1);
     }
     await db.user.update({ where: { id: user.id }, data: { role } });
-    await db.auditLog.create({ data: { action: "staff.role.set", entityType: "User", entityId: user.id, summary: `Role set to ${role} via CLI`, actorEmail: "cli" } });
+    await db.auditLog.create({
+      data: { action: "staff.role.set", entityType: "User", entityId: user.id, summary: `Role set to ${role} via CLI`, actorEmail: "cli" },
+    });
     console.log(`✔ ${user.email} is now ${role}.`);
   } finally {
     await db.$disconnect();

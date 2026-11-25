@@ -38,6 +38,14 @@ function Table({ caption, head, rows }: { caption: string; head: string[]; rows:
 }
 
 export function ContentRenderer({ blocks }: { blocks: ContentBlock[] }) {
+  // Heading level in force before each block (the page title is the h1).
+  const levelBefore: number[] = [];
+  let level = 1;
+  for (const b of blocks) {
+    levelBefore.push(level);
+    if (b.type === "h2") level = 2;
+    else if (b.type === "h3") level = 3;
+  }
   return (
     <div className="max-w-3xl text-[1.02rem] leading-relaxed text-bark">
       {blocks.map((b, i) => {
@@ -100,6 +108,7 @@ export function ContentRenderer({ blocks }: { blocks: ContentBlock[] }) {
                   }}
                 />
                 <Accordion
+                  headingLevel={Math.min(levelBefore[i] + 1, 4) as 2 | 3 | 4}
                   items={b.items.map((f, j) => ({
                     id: `faq-${j}`,
                     title: <span className="normal-case tracking-normal text-base font-semibold">{f.q}</span>,

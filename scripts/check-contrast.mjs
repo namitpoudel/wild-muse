@@ -30,6 +30,8 @@ const ratio = (a, b) => {
 // [foreground, background, minimum] — 4.5 normal text, 3 large text / UI components
 const pairs = [
   ["chocolate", "linen", 4.5],
+  ["cream", "olive", 4.5], // "Explore" eyebrow on the olive collection tile
+  ["sand", "oliveDeep", 4.5], // eyebrow on the Handmade in Nepal band
   ["chocolate", "cream", 4.5],
   ["chocolate", "sand", 4.5],
   ["bark", "linen", 4.5],

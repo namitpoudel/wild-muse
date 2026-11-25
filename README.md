@@ -3,7 +3,7 @@
 Premium bohemian and handmade Nepali fashion — a UK e-commerce platform built with Next.js 16, TypeScript, Tailwind CSS,
 PostgreSQL (Prisma 7) and Better Auth.
 
-> Project status: **Stage 5 of 7 complete** (Stripe Checkout + webhooks, refunds, returns, Royal Mail Click & Drop, notifications). See `docs/`.
+> Project status: **Stage 6 of 7 complete** (security headers, WCAG 2.2 AA audit, Lighthouse, load test). See `docs/`.
 
 ## Run locally
 
@@ -107,4 +107,5 @@ docs/                stage reports and screenshots
 - `docs/03-stage-3-frontend.md` — search, content pages, cookie consent, SEO
 - `docs/04-stage-4-backend.md` — database, auth, cart/orders, admin, security model, test results
 - `docs/05-stage-5-payments-shipping.md` — Stripe, webhooks, refunds, returns, Click & Drop, emails, test status
+- `docs/06-stage-6-security-quality.md` — security headers/CSP, OWASP review, accessibility audit, Lighthouse, load test
 - `docs/screenshots/` — desktop, mobile and admin screenshots

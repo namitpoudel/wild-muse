@@ -77,8 +77,10 @@ export function ProductGallery({ images, name }: { images: MediaAsset[]; name: s
         <div
           ref={scroller}
           onScroll={onScroll}
-          className="-mx-4 flex snap-x snap-mandatory overflow-x-auto scrollbar-none md:mx-0"
-          aria-label={`${name} images, swipe to see more`}
+          className="-mx-4 flex snap-x snap-mandatory overflow-x-auto scrollbar-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-terracotta md:mx-0"
+          role="region"
+          tabIndex={0}
+          aria-label={`${name} images, swipe or use arrow keys to see more`}
         >
           {images.map((m, i) => (
             <div key={i} className="aspect-[4/5] w-full shrink-0 snap-center bg-sand" onClick={() => setFull(true)}>

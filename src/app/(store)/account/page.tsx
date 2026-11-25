@@ -70,7 +70,7 @@ async function Overview() {
             ))}
           </ul>
         ) : (
-          <EmptyState icon={Package} title="No orders yet" action={<ButtonLink href="/new-arrivals">Start shopping</ButtonLink>}>
+          <EmptyState headingLevel={3} icon={Package} title="No orders yet" action={<ButtonLink href="/new-arrivals">Start shopping</ButtonLink>}>
             When you place an order you can track it here, download invoices and start a return.
           </EmptyState>
         )}

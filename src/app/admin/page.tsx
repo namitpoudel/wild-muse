@@ -75,7 +75,7 @@ async function Dashboard({ searchParams }: Pick<PageProps<"/admin">, "searchPara
           {s.days.some((d) => d.totalPence > 0) ? (
             <SalesChart days={s.days} />
           ) : (
-            <EmptyState icon={BarChart3} title="No sales yet">
+            <EmptyState headingLevel={3} icon={BarChart3} title="No sales yet">
               Your revenue chart appears here as soon as the first paid order is confirmed by Stripe.
             </EmptyState>
           )}
@@ -93,7 +93,7 @@ async function Dashboard({ searchParams }: Pick<PageProps<"/admin">, "searchPara
               ))}
             </ol>
           ) : (
-            <EmptyState icon={ShoppingCart} title="Waiting for orders">
+            <EmptyState headingLevel={3} icon={ShoppingCart} title="Waiting for orders">
               Ranked by units sold in paid orders.
             </EmptyState>
           )}

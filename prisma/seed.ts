@@ -28,19 +28,40 @@ async function main() {
   });
   await db.taxClass.upsert({
     where: { name: "Zero rate" },
-    create: { name: "Zero rate", rateBps: 0, description: "e.g. qualifying young children's clothing (HMRC VAT Notice 714) — confirm eligibility per product." },
+    create: {
+      name: "Zero rate",
+      rateBps: 0,
+      description: "e.g. qualifying young children's clothing (HMRC VAT Notice 714) — confirm eligibility per product.",
+    },
     update: {},
   });
 
   // Shipping methods — prices editable in Admin → Settings → Delivery.
   await db.shippingMethod.upsert({
     where: { code: "uk-standard" },
-    create: { code: "uk-standard", name: "UK Standard", description: "Tracked, 2–4 working days", pricePence: 395, freeOverPence: 7500, estimatedMinDays: 2, estimatedMaxDays: 4, sortOrder: 0 },
+    create: {
+      code: "uk-standard",
+      name: "UK Standard",
+      description: "Tracked, 2–4 working days",
+      pricePence: 395,
+      freeOverPence: 7500,
+      estimatedMinDays: 2,
+      estimatedMaxDays: 4,
+      sortOrder: 0,
+    },
     update: {},
   });
   await db.shippingMethod.upsert({
     where: { code: "uk-express" },
-    create: { code: "uk-express", name: "UK Express", description: "Tracked, next working day if ordered by 1pm", pricePence: 695, estimatedMinDays: 1, estimatedMaxDays: 1, sortOrder: 1 },
+    create: {
+      code: "uk-express",
+      name: "UK Express",
+      description: "Tracked, next working day if ordered by 1pm",
+      pricePence: 695,
+      estimatedMinDays: 1,
+      estimatedMaxDays: 1,
+      sortOrder: 1,
+    },
     update: {},
   });
 
@@ -58,7 +79,15 @@ async function main() {
   for (const [i, p] of contentPages.entries()) {
     await db.contentPage.upsert({
       where: { path: `pages/${p.slug}` },
-      create: { path: `pages/${p.slug}`, title: p.title, eyebrow: p.eyebrow, description: p.description, blocks: p.blocks as object[], requiresLegalReview: !!p.requiresLegalReview, sortOrder: i },
+      create: {
+        path: `pages/${p.slug}`,
+        title: p.title,
+        eyebrow: p.eyebrow,
+        description: p.description,
+        blocks: p.blocks as object[],
+        requiresLegalReview: !!p.requiresLegalReview,
+        sortOrder: i,
+      },
       update: {},
     });
   }
@@ -127,7 +156,9 @@ async function main() {
         include: { variants: true },
       });
       await db.stockMovement.createMany({
-        data: created.variants.filter((v) => v.stockOnHand > 0).map((v) => ({ variantId: v.id, type: "RECEIVE" as const, quantity: v.stockOnHand, reason: "Demo opening stock" })),
+        data: created.variants
+          .filter((v) => v.stockOnHand > 0)
+          .map((v) => ({ variantId: v.id, type: "RECEIVE" as const, quantity: v.stockOnHand, reason: "Demo opening stock" })),
       });
       for (const slug of p.collectionSlugs) {
         const col = await db.collection.findUnique({ where: { slug } });
@@ -136,7 +167,12 @@ async function main() {
     }
   }
 
-  const counts = { products: await db.product.count(), variants: await db.productVariant.count(), categories: await db.category.count(), pages: await db.contentPage.count() };
+  const counts = {
+    products: await db.product.count(),
+    variants: await db.productVariant.count(),
+    categories: await db.category.count(),
+    pages: await db.contentPage.count(),
+  };
   console.log(`Seed complete (demo catalogue: ${withDemo ? "yes" : "no"})`, counts);
 }
 

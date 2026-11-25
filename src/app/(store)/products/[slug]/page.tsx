@@ -136,7 +136,7 @@ export default async function ProductPage({ params }: PageProps<"/products/[slug
           <div className="mt-7">
             <BuyBox product={product} />
           </div>
-          <Accordion items={details} defaultOpen={["description"]} className="mt-8" />
+          <Accordion items={details} defaultOpen={["description"]} className="mt-8" headingLevel={2} />
         </div>
       </div>
 
@@ -174,7 +174,7 @@ export default async function ProductPage({ params }: PageProps<"/products/[slug
                 ))}
               </ul>
             ) : (
-              <EmptyState icon={MessageSquareHeart} title="Be the first to review" className="rounded-[2px] bg-linen">
+              <EmptyState headingLevel={3} icon={MessageSquareHeart} title="Be the first to review" className="rounded-[2px] bg-linen">
                 Bought this piece? Share how it fits and feels to help other free spirits choose.
               </EmptyState>
             )}

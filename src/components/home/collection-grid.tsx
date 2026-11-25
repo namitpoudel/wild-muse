@@ -34,7 +34,7 @@ export function CollectionGrid({ collections }: { collections: Collection[] }) {
             href="/collections"
             className="group flex h-full min-h-40 flex-col justify-between rounded-[2px] bg-olive p-6 text-linen transition-colors hover:bg-olive-deep md:p-8"
           >
-            <p className="eyebrow text-sand">Explore</p>
+            <p className="eyebrow text-cream">Explore</p>
             <p className="font-display text-2xl md:text-3xl">
               Every collection, <em>one free spirit.</em>
             </p>

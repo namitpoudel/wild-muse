@@ -69,7 +69,18 @@ async function Products({ searchParams }: Pick<PageProps<"/admin/products">, "se
           <input type="checkbox" name="demo" value="1" defaultChecked={sp.demo === "1"} className="accent-terracotta" /> Demo only
         </label>
       </FilterBar>
-      <Table head={["", "Product", "Category", "Price", "Stock", "Status"]}>
+      <Table
+        head={[
+          <span key="img" className="sr-only">
+            Image
+          </span>,
+          "Product",
+          "Category",
+          "Price",
+          "Stock",
+          "Status",
+        ]}
+      >
         {rows.map((p) => {
           const stock = p.variants.filter((v) => v.isActive).reduce((n, v) => n + v.stockOnHand - v.stockReserved, 0);
           return (

@@ -142,7 +142,7 @@ export function ProductListing({ products, facets }: { products: Product[]; face
             </SheetContent>
           </Dialog>
           <label className="flex items-center gap-2 text-sm">
-            <span className="hidden text-bark sm:inline">Sort by</span>
+            <span className="sr-only text-bark sm:not-sr-only">Sort by</span>
             <select
               value={sel.sort}
               onChange={(e) => update((p) => (e.target.value === "featured" ? p.delete("sort") : p.set("sort", e.target.value)))}
@@ -184,27 +184,31 @@ export function ProductListing({ products, facets }: { products: Product[]; face
         <aside className="hidden lg:block" aria-label="Product filters">
           {filters}
         </aside>
-        {results.length ? (
-          <ul className="grid grid-cols-2 gap-x-3 gap-y-10 sm:gap-x-5 md:grid-cols-3">
-            {results.map((p, i) => (
-              <li key={p.id}>
-                <ProductCard product={p} priority={i < 3} />
-              </li>
-            ))}
-          </ul>
-        ) : (
-          <EmptyState
-            icon={SearchX}
-            title="No matches — yet"
-            action={
-              <Button variant="dark" onClick={clearAll}>
-                Clear filters
-              </Button>
-            }
-          >
-            Try removing a filter or two. New handmade pieces arrive regularly.
-          </EmptyState>
-        )}
+        <div>
+          <h2 className="sr-only">Products</h2>
+          {results.length ? (
+            <ul className="grid grid-cols-2 gap-x-3 gap-y-10 sm:gap-x-5 md:grid-cols-3">
+              {results.map((p, i) => (
+                <li key={p.id}>
+                  <ProductCard product={p} priority={i < 3} />
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <EmptyState
+              headingLevel={3}
+              icon={SearchX}
+              title="No matches — yet"
+              action={
+                <Button variant="dark" onClick={clearAll}>
+                  Clear filters
+                </Button>
+              }
+            >
+              Try removing a filter or two. New handmade pieces arrive regularly.
+            </EmptyState>
+          )}
+        </div>
       </div>
     </div>
   );

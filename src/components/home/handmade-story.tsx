@@ -34,7 +34,7 @@ export function HandmadeStory() {
           </div>
         </div>
         <div className="lg:col-span-5 lg:col-start-8">
-          <p className="eyebrow mb-4 text-mustard">Handmade in Nepal</p>
+          <p className="eyebrow mb-4 text-sand">Handmade in Nepal</p>
           <h2 id="handmade-heading" className="font-display text-display-lg font-light">
             Made by hands, <em className="text-sand">not machines.</em>
           </h2>
