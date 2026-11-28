@@ -45,4 +45,17 @@ describe("settings from Vercel integrations", () => {
     });
     expect(pgConnection("postgresql://u:p@localhost:5432/db?schema=public").ssl).toBeUndefined();
   });
+
+  it("accepts integration variables with a custom prefix", () => {
+    const env = applyEnvFallbacks({
+      STORAGE_POSTGRES_PRISMA_URL: "postgres://u:p@pooler.supabase.com:6543/postgres",
+      STORAGE_POSTGRES_URL_NON_POOLING: "postgres://u:p@pooler.supabase.com:5432/postgres",
+      STORAGE_SUPABASE_URL: "https://xyz.supabase.co",
+      STORAGE_SUPABASE_SERVICE_ROLE_KEY: "srk",
+    } as Record<string, string | undefined>);
+    expect(env.DATABASE_URL).toContain(":6543/");
+    expect(env.DIRECT_URL).toContain(":5432/");
+    expect(env.SUPABASE_URL).toBe("https://xyz.supabase.co");
+    expect(env.STORAGE_DRIVER).toBe("supabase");
+  });
 });

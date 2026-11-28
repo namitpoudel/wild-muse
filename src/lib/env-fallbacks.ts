@@ -30,9 +30,12 @@ export function applyEnvFallbacks<T extends Env>(env: T): T {
     if (!e[key] && value) e[key] = value;
   };
 
-  set("DATABASE_URL", e.POSTGRES_PRISMA_URL || e.POSTGRES_URL);
-  set("DIRECT_URL", e.POSTGRES_URL_NON_POOLING);
-  set("SUPABASE_URL", e.NEXT_PUBLIC_SUPABASE_URL);
+  // The Supabase integration may add a custom prefix (e.g. STORAGE_POSTGRES_URL): accept either form.
+  const find = (name: string) => e[name] || Object.entries(e).find(([k, v]) => v && k.endsWith(`_${name}`))?.[1];
+  set("DATABASE_URL", find("POSTGRES_PRISMA_URL") || find("POSTGRES_URL"));
+  set("DIRECT_URL", find("POSTGRES_URL_NON_POOLING"));
+  set("SUPABASE_URL", find("SUPABASE_URL") || find("NEXT_PUBLIC_SUPABASE_URL"));
+  set("SUPABASE_SERVICE_ROLE_KEY", find("SUPABASE_SERVICE_ROLE_KEY"));
 
   const vercelUrl = e.VERCEL_PROJECT_PRODUCTION_URL ? `https://${e.VERCEL_PROJECT_PRODUCTION_URL}` : undefined;
   set("NEXT_PUBLIC_SITE_URL", vercelUrl);
