@@ -42,7 +42,6 @@ describe("production env check", () => {
       "EMAIL_DRIVER",
       "EMAIL_FROM",
       "STRIPE_SECRET_KEY",
-      "STRIPE_WEBHOOK_SECRET",
       "CRON_SECRET",
     ])
       expect(keys).toContain(k);

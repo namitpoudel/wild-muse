@@ -6,6 +6,9 @@
  */
 import "dotenv/config";
 import { checkProductionEnv, isLiveDeployment } from "../src/lib/env-check";
+import { applyEnvFallbacks } from "../src/lib/env-fallbacks";
+
+applyEnvFallbacks(process.env);
 
 const issues = checkProductionEnv(process.env);
 const live = isLiveDeployment(process.env);

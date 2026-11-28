@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { Suspense } from "react";
 import { CircleAlert, CircleCheck, CircleDashed } from "lucide-react";
+import { connectStripeWebhookAction } from "./actions";
+import { AdminForm, Submit } from "@/components/admin/admin-form";
 import { AdminHeader, AdminSkeleton, Card } from "@/components/admin/ui";
 import { requirePermission } from "@/server/auth/session";
 import { getLaunchReadiness, type ReadinessStatus } from "@/server/admin/launch-readiness";
@@ -61,6 +63,11 @@ async function Launch() {
                         {i.label}
                       </p>
                       {i.detail && <p className="mt-0.5 break-words text-sm text-bark">{i.detail}</p>}
+                      {i.action === "connect-stripe-webhook" && (
+                        <AdminForm action={connectStripeWebhookAction} className="mt-3">
+                          <Submit>{i.status === "done" ? "Reconnect Stripe webhook" : "Connect Stripe webhook"}</Submit>
+                        </AdminForm>
+                      )}
                     </div>
                     {i.href && (
                       <Link

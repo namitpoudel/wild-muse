@@ -1,10 +1,19 @@
 import "server-only";
 import { checkProductionEnv, isLiveDeployment } from "@/lib/env-check";
 import { db } from "@/server/db";
+import { getWebhookStatus } from "@/server/payments/webhook-setup";
 import { DEFAULT_SETTINGS, getSettings } from "@/server/settings";
 
 export type ReadinessStatus = "done" | "todo" | "warning";
-export type ReadinessItem = { id: string; group: string; label: string; status: ReadinessStatus; detail?: string; href?: string };
+export type ReadinessItem = {
+  id: string;
+  group: string;
+  label: string;
+  status: ReadinessStatus;
+  detail?: string;
+  href?: string;
+  action?: "connect-stripe-webhook";
+};
 
 /**
  * Text in [square brackets] that isn't a Markdown link, e.g. "[legal business name]".
@@ -33,6 +42,20 @@ export async function getLaunchReadiness(): Promise<{ items: ReadinessItem[]; li
       detail: i.message + (live ? "" : " (Checked again on the live site — development values are expected here.)"),
     });
 
+  const hook = await getWebhookStatus();
+  add({
+    id: "webhook-setup",
+    group: "Hosting & integrations",
+    label: "Stripe webhook connected (confirms payments)",
+    status: hook.source === "none" ? "todo" : "done",
+    detail:
+      hook.source === "auto"
+        ? `Connected to ${hook.url} (${hook.livemode ? "live" : "test"} mode). Connect again after changing domain or switching Stripe mode.`
+        : hook.source === "env"
+          ? "Using STRIPE_WEBHOOK_SECRET from the hosting settings."
+          : "Not connected yet — no order can be marked paid until it is. Use the button below.",
+    action: hook.source === "env" ? undefined : "connect-stripe-webhook",
+  });
   const lastWebhook = await db.processedWebhookEvent.findFirst({ where: { provider: "stripe" }, orderBy: { createdAt: "desc" } });
   add({
     id: "webhook",
@@ -41,7 +64,7 @@ export async function getLaunchReadiness(): Promise<{ items: ReadinessItem[]; li
     status: lastWebhook ? "done" : "todo",
     detail: lastWebhook
       ? `Last event received ${lastWebhook.createdAt.toLocaleString("en-GB", { timeZone: "Europe/London" })}.`
-      : "No Stripe event received yet. Make a test purchase after adding the webhook endpoint in Stripe.",
+      : "No Stripe event received yet. Make a test purchase after connecting the webhook.",
   });
 
   // ── Business details ──

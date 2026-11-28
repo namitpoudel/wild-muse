@@ -19,7 +19,7 @@
     "admin:create": "tsx scripts/create-admin.ts",
     "test": "vitest run --exclude tests/fixtures/**",
     "check:env": "tsx scripts/check-env.ts",
-    "vercel-build": "tsx scripts/check-env.ts && prisma migrate deploy && next build",
+    "vercel-build": "tsx scripts/check-env.ts && prisma migrate deploy && tsx scripts/first-run.ts && next build",
     "db:backup": "bash scripts/backup-db.sh",
     "db:restore": "bash scripts/restore-db.sh",
     "smoke": "node scripts/smoke-test.mjs"

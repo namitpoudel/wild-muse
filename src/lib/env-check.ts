@@ -35,6 +35,8 @@ export function checkProductionEnv(env: Env): EnvIssue[] {
   else if (!env.RESEND_API_KEY) err("RESEND_API_KEY", "Not set.");
   if (!env.EMAIL_FROM || /example|yourdomain/i.test(env.EMAIL_FROM))
     err("EMAIL_FROM", "Set a sender on your verified domain, e.g. Wild Muse <hello@wildmuse.co.uk>.");
+  else if (/@resend\.dev>?$/i.test(env.EMAIL_FROM))
+    warn("EMAIL_FROM", "Using Resend's test sender: emails reach only your own Resend account address. Verify your domain in Resend before launch.");
 
   if (!env.STRIPE_SECRET_KEY) err("STRIPE_SECRET_KEY", "Not set — checkout will refuse orders.");
   else if (env.STRIPE_SECRET_KEY.startsWith("sk_test_"))
@@ -43,8 +45,10 @@ export function checkProductionEnv(env: Env): EnvIssue[] {
       "Test-mode key: customers cannot pay real money. Switch to the live key (sk_live_ or a restricted rk_live_ key) at launch.",
     );
   else if (!/^(sk|rk)_live_/.test(env.STRIPE_SECRET_KEY)) err("STRIPE_SECRET_KEY", "Doesn't look like a Stripe secret key.");
-  if (!env.STRIPE_WEBHOOK_SECRET?.startsWith("whsec_"))
-    err("STRIPE_WEBHOOK_SECRET", "Set the signing secret (whsec_…) of the /api/webhooks/stripe endpoint — without it no order is ever marked paid.");
+  if (env.STRIPE_WEBHOOK_SECRET && !env.STRIPE_WEBHOOK_SECRET.startsWith("whsec_"))
+    err("STRIPE_WEBHOOK_SECRET", "Doesn't look like a Stripe signing secret (whsec_…).");
+  else if (!env.STRIPE_WEBHOOK_SECRET)
+    warn("STRIPE_WEBHOOK_SECRET", "Not set here — use Admin → Launch readiness → “Connect Stripe webhook” (one click) after the first deploy.");
 
   if (!env.CRON_SECRET || env.CRON_SECRET.length < 16)
     err("CRON_SECRET", "Set at least 16 random characters; abandoned checkouts won't release stock without it.");

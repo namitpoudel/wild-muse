@@ -45,6 +45,26 @@ need accounts in **your** name (hosting, database, email, payments), which only 
 
 **Total fixed cost: about £40/month plus a domain**, before payment fees and postage.
 
+## 3a. The easy route: Vercel integrations (recommended)
+
+The shop reads the settings that Vercel's integrations create, so most values never need copying by hand.
+
+1. **Vercel project → Settings → Environment Variables**: paste these lines (in `vercel-production.env`), for Production:
+   `BETTER_AUTH_SECRET`, `CRON_SECRET`, `AUTH_CHECK_BREACHED_PASSWORDS=true`, `OWNER_EMAIL=<your email>`.
+2. **Supabase → Project Settings → Integrations → Vercel → Connect**, then choose the `wild-muse` Vercel project. This adds
+   `POSTGRES_PRISMA_URL`, `POSTGRES_URL_NON_POOLING`, `SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY`. The shop uses
+   them for the database and photo storage automatically.
+3. **Vercel → Integrations → Resend → Add**, connected to the project (adds `RESEND_API_KEY`). Until your own domain is
+   verified in Resend, emails come from Resend's test sender and reach only your own Resend account address.
+4. **Stripe**: Vercel's Stripe integration adds `STRIPE_SECRET_KEY`. Use a test/sandbox key for the preview.
+5. **Deployments → ⋯ → Redeploy.** The build checks the settings, creates the database tables and loads the starter
+   content (categories, delivery methods, policy pages; no demo products). The site address comes from Vercel automatically.
+6. Open the site, **register with your `OWNER_EMAIL` address** and confirm the email. Your account becomes **Owner**
+   automatically. This only works while the shop has no owner.
+7. **Admin → Launch readiness → Connect Stripe webhook** (one click). Then make a test purchase with card 4242 4242 4242 4242.
+
+The manual steps below do the same thing by hand.
+
 ## 3. Deploy step by step
 
 Do this once, in order. It takes about 1–2 hours. Turn on **two-factor authentication** on every account as you

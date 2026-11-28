@@ -4,6 +4,7 @@ import { prismaAdapter } from "better-auth/adapters/prisma";
 import { nextCookies } from "better-auth/next-js";
 import { haveIBeenPwned } from "better-auth/plugins/haveibeenpwned";
 import { db } from "../db";
+import { maybePromoteFirstOwner } from "./bootstrap-owner";
 import { sendEmail } from "../email";
 import { layout } from "../email/templates";
 
@@ -77,12 +78,24 @@ export const auth = betterAuth({
     useSecureCookies: siteUrl.startsWith("https://"),
   },
   databaseHooks: {
+    user: {
+      update: {
+        // Confirming the email updates the user: promote the first owner at that moment too.
+        after: async (user) => {
+          if (user.emailVerified) await maybePromoteFirstOwner(user.id).catch((e) => console.error("[auth] owner bootstrap failed", e));
+        },
+      },
+    },
     session: {
       create: {
         // Suspended accounts cannot sign in.
         before: async (session) => {
           const u = await db.user.findUnique({ where: { id: session.userId }, select: { status: true } });
           if (u?.status === "SUSPENDED") return false;
+        },
+        // First owner from OWNER_EMAIL (only while the shop has no owner; email must be verified).
+        after: async (session) => {
+          await maybePromoteFirstOwner(session.userId).catch((e) => console.error("[auth] owner bootstrap failed", e));
         },
       },
     },

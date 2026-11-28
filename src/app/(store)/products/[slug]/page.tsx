@@ -24,7 +24,10 @@ import { getAllProductSlugs, getProductBySlug, getProducts, getRelatedProducts }
 import { isNewArrival } from "@/lib/catalog/product-utils";
 
 export async function generateStaticParams() {
-  return (await getAllProductSlugs()).map((slug) => ({ slug }));
+  const slugs = await getAllProductSlugs().catch(() => []);
+  // Cache Components requires at least one param. A new shop has no products yet, so use a
+  // placeholder that renders the 404 page; real products are rendered on demand and cached.
+  return slugs.length ? slugs.map((slug) => ({ slug })) : [{ slug: "__placeholder__" }];
 }
 
 export async function generateMetadata({ params }: PageProps<"/products/[slug]">): Promise<Metadata> {

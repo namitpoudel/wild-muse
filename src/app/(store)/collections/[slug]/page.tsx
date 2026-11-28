@@ -4,7 +4,9 @@ import { SimpleListingPage } from "@/components/listing/simple-listing-page";
 import { getCollection, getCollections, getProducts } from "@/server/catalog/queries";
 
 export async function generateStaticParams() {
-  return (await getCollections()).map((c) => ({ slug: c.slug }));
+  const cols = await getCollections().catch(() => []);
+  // Cache Components requires at least one param (a new shop may have no collections yet).
+  return cols.length ? cols.map((c) => ({ slug: c.slug })) : [{ slug: "__placeholder__" }];
 }
 
 export async function generateMetadata({ params }: PageProps<"/collections/[slug]">): Promise<Metadata> {

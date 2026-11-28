@@ -1,5 +1,8 @@
 import "dotenv/config";
 import { defineConfig } from "prisma/config";
+import { applyEnvFallbacks, cleanDatabaseUrl } from "./src/lib/env-fallbacks";
+
+applyEnvFallbacks(process.env);
 
 export default defineConfig({
   schema: "prisma/schema.prisma",
@@ -13,6 +16,6 @@ export default defineConfig({
   // break installation; `migrate deploy` still fails clearly, after scripts/check-env.ts has listed
   // every missing setting.
   datasource: {
-    url: process.env.DIRECT_URL || process.env.DATABASE_URL || "postgresql://missing-database-url/none",
+    url: cleanDatabaseUrl(process.env.DIRECT_URL || process.env.DATABASE_URL || "postgresql://missing-database-url/none"),
   },
 });
