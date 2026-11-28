@@ -2,6 +2,7 @@
 
 import { z } from "zod";
 import { addToCart, CartError, getCartView, setCartCoupon, setQuantity, type CartView } from "@/server/cart/cart";
+import { releaseExpiredReservationsSoon } from "@/server/orders/orders";
 import { validateCoupon } from "@/server/pricing/coupons";
 import { rateLimit } from "@/server/security/rate-limit";
 import { fail, ok, type ActionResult } from "./result";
@@ -18,6 +19,7 @@ export async function addToCartAction(input: { variantId: string; quantity: numb
   if (!parsed.success) return fail("Invalid request.");
   const rl = await rateLimit("cart", { max: 60, windowSeconds: 60 });
   if (!rl.ok) return fail("You're doing that too quickly — please wait a moment.");
+  await releaseExpiredReservationsSoon();
   try {
     const { view, capped } = await addToCart(parsed.data.variantId, parsed.data.quantity);
     return ok({ cart: view, capped });

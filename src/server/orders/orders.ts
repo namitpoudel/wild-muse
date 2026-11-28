@@ -56,6 +56,7 @@ export class CheckoutError extends Error {
 
 /** Server-side quote for a cart: the ONLY numbers the checkout will ever charge. */
 export async function quoteCart(cartId: string, opts: { shippingCode?: string | null; email?: string | null }) {
+  await releaseExpiredReservationsSoon();
   const cart = await db.cart.findUniqueOrThrow({ where: { id: cartId } });
   const view = await buildView(cartId, cart.couponCode);
   const settings = await getSettings();
@@ -256,6 +257,24 @@ export async function releaseExpiredReservations(now = new Date()) {
   let released = 0;
   for (const o of expired) if (await cancelPendingOrder(o.id, "Payment not completed in time")) released++;
   return released;
+}
+
+/**
+ * Opportunistic release of abandoned checkout holds, called as customers shop (bag, checkout, live
+ * stock). Needed on hosting where the scheduled job runs only once a day (Vercel Hobby). Throttled to
+ * one sweep per minute per server instance; never throws into the caller. Safe against late payments:
+ * markOrderPaid still accepts a payment for a released order and flags any stock conflict.
+ */
+let lastSweep = 0;
+export async function releaseExpiredReservationsSoon(now = Date.now()): Promise<number | null> {
+  if (now - lastSweep < 60_000) return null;
+  lastSweep = now;
+  try {
+    return await releaseExpiredReservations(new Date(now));
+  } catch (e) {
+    console.error("[orders] release sweep failed", e);
+    return 0;
+  }
 }
 
 /** Admin cancellation of a paid order. Refunds are issued separately via the payment provider. */

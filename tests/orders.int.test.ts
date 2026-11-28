@@ -4,7 +4,14 @@
  */
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { db } from "@/server/db";
-import { cancelPendingOrder, CheckoutError, createPendingOrder, markOrderPaid, releaseExpiredReservations } from "@/server/orders/orders";
+import {
+  cancelPendingOrder,
+  CheckoutError,
+  createPendingOrder,
+  markOrderPaid,
+  releaseExpiredReservations,
+  releaseExpiredReservationsSoon,
+} from "@/server/orders/orders";
 
 const TAG = `it-${Date.now()}`;
 let variantId = "";
@@ -113,5 +120,19 @@ describe("order processing", () => {
 
   it("database constraints block negative stock even if code is wrong", async () => {
     await expect(db.productVariant.update({ where: { id: variantId }, data: { stockOnHand: -1 } })).rejects.toThrow();
+  });
+
+  it("releases abandoned holds while customers shop (daily-cron hosting), at most once a minute", async () => {
+    const order = await checkout(await cartWith(1));
+    await db.order.update({ where: { id: order.id }, data: { reservationExpiresAt: new Date(Date.now() - 60_000) } });
+    expect((await variant()).stockReserved).toBe(1);
+
+    const t = Date.now() + 10 * 60_000; // a fresh minute for the throttle
+    expect(await releaseExpiredReservationsSoon(t)).toBeGreaterThanOrEqual(1);
+    expect((await db.order.findUniqueOrThrow({ where: { id: order.id } })).status).toBe("CANCELLED");
+    expect((await variant()).stockReserved).toBe(0);
+
+    // Within the same minute the sweep is skipped (no extra database load per page view).
+    expect(await releaseExpiredReservationsSoon(t + 30_000)).toBeNull();
   });
 });

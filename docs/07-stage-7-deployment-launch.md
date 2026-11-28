@@ -35,7 +35,7 @@ need accounts in **your** name (hosting, database, email, payments), which only 
 
 | Service | Plan | Approx. cost | Why this plan |
 |---|---|---|---|
-| **Vercel** (hosting) | **Pro** | about $20/month per team member (one member is enough) | The free Hobby plan is **for non-commercial use only**, and its scheduled jobs run only **once a day**. The shop's stock-release job runs every 15 minutes. |
+| **Vercel** (hosting) | **Hobby (free) for a private preview → Pro before selling** | £0 now; about $20/month on Pro | Vercel's free Hobby plan is **for non-commercial use only**, so upgrade to Pro before taking real orders. The shop runs on Hobby: its scheduled job is set to once a day (Hobby's limit), and abandoned-checkout stock is also released automatically as customers shop. |
 | **Supabase** (database + photo storage) | **Pro** | $25/month | The free plan **pauses after a week without activity** and has **no automatic backups**. Pro has daily backups kept for 7 days and no pausing. |
 | **Resend** (email) | Free to start | £0 at low volume | The free tier covers a small shop's order emails. Check its daily and monthly limits and upgrade when you outgrow them. |
 | **Stripe** (payments) | Pay per transaction | No monthly fee; a % + fixed fee per card payment (UK cards are cheapest) | See stripe.com/gb/pricing. Fees are shown per payment in your Stripe dashboard. |
@@ -97,14 +97,17 @@ This creates categories, delivery methods, tax classes and the policy pages, **w
    - Copy its **Signing secret** (`whsec_…`) → `STRIPE_WEBHOOK_SECRET`.
 
 ### Step E — Vercel (hosting)
-1. vercel.com → sign up with GitHub, then upgrade the team to **Pro**.
+1. vercel.com → sign up with GitHub. For a free **preview**, import the project into your **personal (Hobby)** account. A team
+   such as `wild-muse` requires Pro. Before selling, move the project to a Pro team (Project → Settings → Transfer)
+   or upgrade.
 2. **Add New → Project → Import** `namitpoudel/wild-muse`. The framework is detected as Next.js. Leave the build command
    alone: Vercel automatically runs the `vercel-build` script, which does the configuration check, then migrations, then the build.
 3. **Settings → Environment Variables**: add every variable from section 4 for **Production**. Tick **Sensitive** for secrets.
    For Preview deployments, use test keys and ideally a separate Supabase project. Never point previews at the live database.
 4. **Settings → Domains**: add `yourdomain.co.uk` and `www.yourdomain.co.uk` and follow the DNS instructions. HTTPS is automatic.
 5. **Deploy.** If the configuration check fails, the build log lists exactly which variables to fix.
-6. The scheduled job (`vercel.json`, every 15 minutes) is picked up automatically. Vercel sends your `CRON_SECRET` with it.
+6. The scheduled job (`vercel.json`, daily at about 04:23 UTC) is picked up automatically, and Vercel sends your
+   `CRON_SECRET` with it. On Pro you may change the schedule to `*/15 * * * *` for faster Click & Drop tracking sync.
 
 ### Step F — Create the owner account
 1. Register on the live site at `https://<your-domain>/register` and verify the email.
@@ -237,7 +240,7 @@ integration tests passed against the restored copy.
 | Customer paid but the order still shows "Awaiting payment" | The webhook isn't reaching the site. Check Stripe → Webhooks (wrong URL? the test-mode secret on the live site?). Click **Check payment with Stripe** on the order. Fix `STRIPE_WEBHOOK_SECRET`, then redeploy. |
 | Checkout says "couldn't connect to our payment provider" | Stripe key wrong or revoked. Check `STRIPE_SECRET_KEY` in Vercel. The customer's bag is kept. |
 | No emails arriving | Resend → Logs. Check the domain is still verified, `EMAIL_DRIVER=resend`, and the API key hasn't been revoked. |
-| Items stuck as "reserved" | The scheduled job isn't running: Vercel → Cron Jobs (needs the Pro plan and `CRON_SECRET`). |
+| Items stuck as "reserved" | Holds are released when customers browse, add to bag or check out, and by the daily job. Check Vercel → Cron Jobs and that `CRON_SECRET` is set. |
 | Site down | Check `/api/health` and Vercel status. If a bad deploy caused it, use **Instant Rollback**. |
 | Chargeback / dispute | A note is added to the order automatically. Respond with evidence (tracking, delivery proof) in Stripe → Disputes before the deadline. |
 | Customer asks for their data or for deletion (UK GDPR) | Respond within one month. Customers can export or delete their data themselves in Account → Privacy. For guest orders, export the order from Admin. Order records needed for tax are kept (6 years). |

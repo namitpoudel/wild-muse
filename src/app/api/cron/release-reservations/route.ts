@@ -7,7 +7,10 @@ import { syncPendingClickAndDrop } from "@/server/shipping-providers";
  * Safety-net job: (1) asks Stripe about checkouts whose webhook hasn't arrived,
  * (2) releases stock held by checkouts that never completed payment,
  * (3) pulls Royal Mail Click & Drop tracking for orders awaiting dispatch.
- * Schedule every 15 minutes (vercel.json → crons). Protected by CRON_SECRET.
+ * Scheduled by vercel.json → crons: once a day (Vercel Hobby allows no more). Abandoned-checkout
+ * holds are also released as customers shop (releaseExpiredReservationsSoon), and late payments are
+ * re-checked by the webhook itself, so daily is enough. On Vercel Pro you can use "*\/15 * * * *".
+ * Protected by CRON_SECRET.
  */
 function authorised(req: Request) {
   const secret = process.env.CRON_SECRET;
