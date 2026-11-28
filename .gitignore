@@ -50,3 +50,6 @@ next-env.d.ts
 backups/
 *.dump
 *.dump.gpg
+
+# Production variables worksheet — contains secrets
+vercel-production.env
